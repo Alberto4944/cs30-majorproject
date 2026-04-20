@@ -1,0 +1,1 @@
+Idea: combining with research methods 20 class by making a table tennis ai-assisted coach.
