@@ -4,7 +4,7 @@ This project will be a javascript version of my Research Methods 20 class. My re
 
 ## What this Project Needs:
 ### Frontend (enhances user experience):
-- Clean interface for the user to interact with, including customization options for the camera, recording quality, and color of keypoints
+- Clean desktop interface for the user to interact with, including customization options for the camera, recording quality, and color of keypoints
 - Mobile friendly interface that can be used in portrait and landscape view, with access to the phone's camera
 - Instructions page
 
