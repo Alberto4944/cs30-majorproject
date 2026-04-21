@@ -1,5 +1,5 @@
 # CS30 Major Project Proposal
-## Desription
+## Description
 This project will be a javascript version of my Research Methods 20 class. My research topic is about how artificial intelligence and machine learning assist and replace traditional coaching methods in table tennis. The main steps in sports analysis is computer vision > stroke classification > analysis of strokes and feedback. Javascript can utilize services such as mediapipe and ml5 which can use a camera and plot key points onto the screen. For this project, the main premise will be making a visually appealing computer vision service, and also saving different sets of strokes to train an AI model to classify them.
 
 ## What this Project Needs:
