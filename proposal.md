@@ -4,17 +4,21 @@ This project will be a javascript version of my Research Methods 20 class. My re
 
 ## What this Project Needs:
 ### Frontend (enhances user experience):
-- Clean desktop interface for the user to interact with, including customization options for the camera, recording quality, and color of keypoints
+# FLESH OUT THE FRONT END DETAILS
+- Multiple functions on the entry page:
+  - Import database of all coordinates of body pose keypoints, of each video frame and **view all data**
+  - Classify strokes, with an database of categorized strokes, but with no names for the strokes
+- FULL DATA PAGE
+  - Large central viewer that displays all points with customizable colors
+  - Will add more later
 - Mobile friendly interface that can be used in portrait and landscape view, with access to the phone's camera
 - Instructions page
-
-### Backend (main focus):
-- Design a machine learning model that can classify strokes and have the user give each new stroke a name, such as forehand drive, or backhand push
-- Use mediapipe or Ml5 to capture coordinates of keypoints and save them in a dataset or json file
-- Statisitcs for the groups of strokes, such as a chart with # of specific stroke hit and success rate
 
 ## What this Project Could Have (nice to have):
 - Settings for saving and exporting images, videos, and datasets
 - Interface to import online datasets
 - Console or logging system to figure out issues and problems that arise while usage
 - A demo page that displays example videos that I upload that users can view to get assistance (may not be the best since will take up storage)
+- Statisitcs for the groups of strokes, such as a chart with # of specific stroke hit and success rate
+- Design a machine learning model that can classify strokes and have the user give each new stroke a name, such as forehand drive, or backhand push
+- Use mediapipe or Ml5 to capture coordinates of keypoints and save them in a dataset or json file
