@@ -13,6 +13,7 @@ This project will be a javascript version of my Research Methods 20 class. My re
 - Mobile responsiveness
   - portrait: video on top, controls on bottom
   - landscape: video on left, stats on right
+- Dark / light theme, can be toggled
 
 
 ## What this Project Could Have (nice to have):
