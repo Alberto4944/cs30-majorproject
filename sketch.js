@@ -35,7 +35,42 @@ let points = [
   [0.6562801003456116, 0.9307265877723694, 0.22890625894069672],
   [0.06237652897834778, 0.8764356374740601, 0.056619640439748764],
   [0.7119647264480591, 0.8934012055397034, 0.22604070603847504],
-]
+];
+
+let connections = [
+[2, 5], // 1: Nose
+  [2], // 2: Left Eye (inner)
+  [0, 7], // 3: Left Eye
+  [5], // 4: Right Eye (inner)
+  [0, 8], // 5: Right Eye
+  [5], // 6: Right Eye (outer)
+  [2], // 7: Left Ear
+  [5], // 8: Right Ear
+  [10], // 9: Mouth (left)
+  [9], // 10: Mouth (right)
+  [12, 13, 23], // 11: Left Shoulder
+  [11, 14, 24], // 12: Right Shoulder
+  [11, 15], // 13: Left Elbow
+  [12, 16], // 14: Right Elbow
+  [13, 17, 19, 21], // 15: Left Wrist
+  [14, 18, 20, 22], // 16: Right Wrist
+  [15, 19], // 17: Left Pinky
+  [16, 20], // 18: Right Pinky
+  [15, 17], // 19: Left Index
+  [16, 18], // 20: Right Index
+  [15], // 21: Left Thumb
+  [16], // 22: Right Thumb
+  [11, 24, 25], // 23: Left Hip
+  [12, 23, 26], // 24: Right Hip
+  [23, 27], // 25: Left Knee
+  [24, 28], // 26: Right Knee
+  [25, 29, 31], // 27: Left Ankle
+  [26, 30, 32], // 28: Right Ankle
+  [27, 31], // 29: Left Heel
+  [28, 32], // 30: Right Heel
+  [27, 29], // 31: Left Foot Index
+  [28, 30] // 32: Right Foot Index
+];
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
@@ -45,19 +80,17 @@ function setup() {
 
 function draw() {
   background(200);
-
-  // Enable orbiting with the mouse.
   orbitControl();
 
-  // Draw the box.
-  for (let point = 0; point < points.length; point++) {
-    drawPoint(points[point]);
+  for (let index = 0; index < points.length; index++) {
+    drawPoint(points[index]);
     push();
     strokeWeight(20);
-    if (point > 0) {
-      line(points[point][0], points[point][1], points[point][2], points[point-1][0], points[point-1][1], points[point-1][2]);
-      console.log(points[point][0]);
+    for (otherIndex = 0; otherIndex < (connections[index]).length; otherIndex++) {
+      // line(points[index][0], points[index][1], points[index][2], points[otherIndex][0], points[otherIndex][1], points[otherIndex][2]);
+      console.log(index);
     }
+    
     pop();
   }
 }
@@ -68,7 +101,4 @@ function drawPoint(array) {
   translate(array[0]*width,array[1]*height,array[2]*width);
   sphere(5);
   pop();
-}
-
-function drawLine(array) {
 }
