@@ -1,6 +1,8 @@
 // Click and drag the mouse to view the scene from different angles.
 let viewer;
 
+let landmarkTable;
+
 let connections = [
   [2, 5], // 0: Nose
   [2], // 1: Left Eye (inner)
@@ -36,6 +38,25 @@ let connections = [
   [27, 29], // 31: Left Foot Index
   [28, 30] // 32: Right Foot Index
 ];
+
+function preload() {
+  landmarkTable = loadTable('/assets/pose_landmarks.csv', 'csv', loadData);
+}
+
+function loadData(table) {
+  landmarks = [];
+  let tableRows = table.getRows();
+  for (let row of tableRows) {
+    // Get position, diameter, name,
+    let x = row.getNum('x');
+    let y = row.getNum('y');
+    let radius = row.getNum('radius');
+    let name = row.getString('name');
+
+    // Put object in array
+    bubbles.push(new Bubble(x, y, radius, name));
+  }
+}
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
