@@ -3,6 +3,8 @@ let viewer;
 
 let landmarkTable;
 
+let landmarks = [];
+
 let connections = [
   [2, 5], // 0: Nose
   [2], // 1: Left Eye (inner)
@@ -43,18 +45,16 @@ function preload() {
   landmarkTable = loadTable('/assets/pose_landmarks.csv', 'csv', loadData);
 }
 
-function loadData(table) {
-  landmarks = [];
-  let tableRows = table.getRows();
-  for (let row of tableRows) {
-    // Get position, diameter, name,
-    let x = row.getNum('x');
-    let y = row.getNum('y');
-    let radius = row.getNum('radius');
-    let name = row.getString('name');
-
-    // Put object in array
-    bubbles.push(new Bubble(x, y, radius, name));
+function loadData(landmarkTable) {
+  let rowCount = landmarkTable.getRowCount();
+  let colCount = landmarkTable.getColumnCount();
+  
+  for (let row = 0; row < rowCount; row++) {
+    let current_landmarks = [];
+    for (let col = 0; col < colCount; col+=3) {
+      current_landmarks.push([landmarkTable.getNum(row, col), landmarkTable.getNum(row, col+1), landmarkTable.getNum(row, col+2)]);
+    }
+    landmarks.push(current_landmarks);
   }
 }
 
@@ -68,12 +68,12 @@ function setup() {
 function draw() {
   background(200);
   orbitControl();
-  for (let index = 0; index < points.length; index++) {
-    if (index) {
-      drawPoint(points[index]);
-    }
-    drawConnections(index);
+  for (let frame = 0; frame < landmarks.length; frame++) {
+    for (let index = 0; index < landmarks[frame].length; index++) {
+      drawPoint(landmarks[frame][index]);
+      drawConnections(frame, index);
     
+    }
   }
 }
 
@@ -85,14 +85,14 @@ function drawPoint(array) {
   pop();
 }
 
-function drawConnections(index) {
+function drawConnections(frame, index) {
   push();
   strokeWeight(5);
   let theConnections = connections[index];
   for (let otherPoint of theConnections) {
-    line(points[index][0]*width, points[index][1]*height, points[index][2]*width, points[otherPoint][0]*width, points[otherPoint][1]*height, points[otherPoint][2]*width);
+    line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, landmarks[frame][index][2]*width, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, landmarks[frame][otherPoint][2]*width);
     // line(points[index][0]*width, points[index][1]*height, points[index][2]*width, 0, 0, 0);
-    console.log(points[otherPoint][0]*width);
+    console.log(landmarks[frame][otherPoint][0]*width);
   }
   pop();
 }
