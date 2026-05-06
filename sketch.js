@@ -5,6 +5,8 @@ let landmarkTable;
 
 let landmarks = [];
 
+let frame = 0;
+
 let connections = [
   [2, 5], // 0: Nose
   [2], // 1: Left Eye (inner)
@@ -61,20 +63,17 @@ function loadData(landmarkTable) {
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   // viewer = createGraphics(500, 500, WEBGL);
-  console.log(connections[0].length);
-  
+  frameRate(1);
 }
 
 function draw() {
-  background(200);
+  // clear();
+  background(220);
   orbitControl();
-  for (let frame = 0; frame < landmarks.length; frame++) {
-    for (let index = 0; index < landmarks[frame].length; index++) {
-      drawPoint(landmarks[frame][index]);
-      drawConnections(frame, index);
-    
-    }
+  for (let index = 0; index < landmarks[frame].length; index++) {
+    drawPoint(landmarks[frame][index]);
   }
+  // frame++;
 }
 
 function drawPoint(array) {
@@ -92,7 +91,6 @@ function drawConnections(frame, index) {
   for (let otherPoint of theConnections) {
     line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, landmarks[frame][index][2]*width, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, landmarks[frame][otherPoint][2]*width);
     // line(points[index][0]*width, points[index][1]*height, points[index][2]*width, 0, 0, 0);
-    console.log(landmarks[frame][otherPoint][0]*width);
   }
   pop();
 }
