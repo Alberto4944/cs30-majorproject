@@ -4,7 +4,11 @@ let landmarkTable;
 let landmarks = [];
 let frame = 0;
 let lastFrame = 0;
-let frameInterval = 20;
+let frameInterval = 1000/30;
+
+let theScale = 0.25;
+
+let rotationY = 0;
 
 let connections = [
   [2, 5], // 0: Nose
@@ -65,37 +69,49 @@ function setup() {
 }
 
 function draw() {
+  scale(theScale);
   // clear();
   background(220);
-  orbitControl();
+  // orbitControl();
+  rotationY+=0.005;
+  rotateY(rotationY);
   if (millis() > lastFrame + frameInterval) {
     lastFrame = millis();
     frame++;
   }
   for (let index = 0; index < landmarks[frame].length; index++) {
-    drawPoint(landmarks[frame][index]);
-    drawConnections(frame, index);
-  }
+    if (index > 10) {
+      drawConnections(frame, index);
+    }
+    else if (index === 0) {
+      push();
+      fill("black");
+      sphere(150);
+      pop();
+    }
     
-}
-  
-// frame++;
-
-function drawPoint(array) {
-  push();
-  fill("black");
-  translate(array[0]*width,array[1]*height,array[2]*width/3);
-  sphere(5);
-  pop();
+  }
 }
 
 function drawConnections(frame, index) {
   push();
-  strokeWeight(5);
+  translate(-landmarks[frame][0][0]*width,-landmarks[frame][0][1]*height,-landmarks[frame][0][2]*width/-250);
+  strokeWeight(10*theScale);
   let theConnections = connections[index];
   for (let otherPoint of theConnections) {
     line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, landmarks[frame][index][2]*width/3, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, landmarks[frame][otherPoint][2]*width/3);
     // line(points[index][0]*width, points[index][1]*height, points[index][2]*width, 0, 0, 0);
   }
   pop();
+}
+
+function mouseWheel(event) {
+  if (event.delta > 0) {
+    theScale+=0.1;
+  } 
+  else {
+    if (theScale > 0.15) {
+      theScale-=0.1;
+    }
+  }
 }
