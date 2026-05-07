@@ -1,11 +1,10 @@
 // Click and drag the mouse to view the scene from different angles.
 let viewer;
-
 let landmarkTable;
-
 let landmarks = [];
-
 let frame = 0;
+let lastFrame = 0;
+let frameInterval = 20;
 
 let connections = [
   [2, 5], // 0: Nose
@@ -63,23 +62,29 @@ function loadData(landmarkTable) {
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   // viewer = createGraphics(500, 500, WEBGL);
-  frameRate(1);
 }
 
 function draw() {
   // clear();
   background(220);
   orbitControl();
+  if (millis() > lastFrame + frameInterval) {
+    lastFrame = millis();
+    frame++;
+  }
   for (let index = 0; index < landmarks[frame].length; index++) {
     drawPoint(landmarks[frame][index]);
+    drawConnections(frame, index);
   }
-  // frame++;
+    
 }
+  
+// frame++;
 
 function drawPoint(array) {
   push();
   fill("black");
-  translate(array[0]*width,array[1]*height,array[2]*width);
+  translate(array[0]*width,array[1]*height,array[2]*width/3);
   sphere(5);
   pop();
 }
@@ -89,7 +94,7 @@ function drawConnections(frame, index) {
   strokeWeight(5);
   let theConnections = connections[index];
   for (let otherPoint of theConnections) {
-    line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, landmarks[frame][index][2]*width, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, landmarks[frame][otherPoint][2]*width);
+    line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, landmarks[frame][index][2]*width/3, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, landmarks[frame][otherPoint][2]*width/3);
     // line(points[index][0]*width, points[index][1]*height, points[index][2]*width, 0, 0, 0);
   }
   pop();
