@@ -8,6 +8,8 @@ let frameInterval = 1000/60;
 
 let firstNoseFrame = 0;
 
+let slider;
+
 let inputState = "import-csv";
 
 let theScale = 0.25;
@@ -50,33 +52,15 @@ let connections = [
   [28, 30] // 32: Right Foot Index
 ];
 
-// function preload() {
-//   landmarkTable = loadTable('/assets/pose_landmarks.csv', 'csv', loadData);
-// }
-
-// function loadData(landmarkTable) {
-//   let rowCount = landmarkTable.getRowCount();
-//   let colCount = landmarkTable.getColumnCount();
-  
-//   for (let row = 0; row < rowCount; row++) {
-//     let current_landmarks = [];
-//     for (let col = 0; col < colCount; col+=3) {
-//       current_landmarks.push([
-//         landmarkTable.getNum(row, col), 
-//         landmarkTable.getNum(row, col+1), 
-//         landmarkTable.getNum(row, col+2)]);
-//     }
-//     landmarks.push(current_landmarks);
-//   }
-// }
-
 let noseX;
 let noseY;
 let noseZ;
 
 function handleFile(file) {
+  // global slider;
   // While looking at importing CSV files online, I found that it would be easier to parse the files rather than read them like tables. I got a whole bunch of errors when trying to import, so I found that parsing works way faster and is overall better
   if (file.type === 'comma-separated-values' || file.name.endsWith('.csv')) {
+    
     let cols;
     landmarks = []; 
     let rawText = file.data;
@@ -87,6 +71,8 @@ function handleFile(file) {
       return;
     }
 
+    
+
     for (let row = 0; row < rows.length; row++) {
       let current_landmarks = [];
       cols = rows[row].split(',');
@@ -95,12 +81,14 @@ function handleFile(file) {
           parseFloat(cols[col]), // Found these functions by looking on the MDN and found this: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
           parseFloat(cols[col+1]), 
           parseFloat(cols[col+2])
+          
         ]);
       }
       landmarks.push(current_landmarks);
     }
     firstNoseFrame = findFirstFrameWithNose(landmarks);
     inputState = "run";  
+    makeSlider(landmarks);
   } 
   else {
     alert("Please upload a valid CSV file.");
@@ -109,20 +97,24 @@ function handleFile(file) {
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
-
   input = createFileInput(handleFile);
   input.position(20, 20); 
   input.style('z-index', '10');
+  console.log(landmarks.length);
 }
 
 function draw() {
   background(220);
+  // slider.hide();
   if (inputState === "run") {
     scale(theScale);
-    orbitControl();
-    if (frame >= landmarks.length-1) {
-      frame = 0;
-    }
+    // orbitControl();
+    // if (frame >= landmarks.length-1) {
+    //   frame = 0;
+    // }
+
+    slider.show();
+    frame = slider.value();
 
     push();
     rotateX(HALF_PI);
@@ -143,11 +135,11 @@ function draw() {
     }
 
     translate(-noseX, -noseY, -noseZ);
-
-    if (millis() > lastFrame + frameInterval) {
-      lastFrame = millis();
-      frame++;
-    }
+    
+    // if (millis() > lastFrame + frameInterval) {
+    //   lastFrame = millis();
+    //   frame++;
+    // }
     for (let index = 0; index < landmarks[frame].length; index++) {
       if (index > 10) {
         drawConnections(frame, index);
@@ -207,4 +199,11 @@ function findFirstFrameWithNose(landmarks) {
       return frame;
     }
   }
+}
+
+function makeSlider(landmarks) {
+  slider = createSlider(0, landmarks.length-1);
+  slider.position(width/2-200,100);
+  slider.size(400);
+  slider.style('z-index', '10');
 }
