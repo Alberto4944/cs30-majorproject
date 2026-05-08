@@ -4,17 +4,22 @@ let landmarkTable;
 let landmarks = [];
 let frame = 0;
 let lastFrame = 0;
-let frameInterval = 1000/60;
+let frameInterval;
+
+let myFont;
+
+let otherCanvas;
+
+const FRAME_RATE = 60;
 
 let firstNoseFrame = 0;
-
 let slider;
-
 let inputState = "import-csv";
-
 let theScale = 0.25;
-
 let rotationY = 0;
+
+let autoPlay = true;
+let playbackPaused = false;
 
 let connections = [
   [2, 5], // 0: Nose
@@ -56,26 +61,31 @@ let noseX;
 let noseY;
 let noseZ;
 
+function preload() {
+  myFont = loadFont('fonts/Montserrat-Regular.ttf');
+}
+
 function handleFile(file) {
-  // global slider;
   // While looking at importing CSV files online, I found that it would be easier to parse the files rather than read them like tables. I got a whole bunch of errors when trying to import, so I found that parsing works way faster and is overall better
   if (file.type === 'comma-separated-values' || file.name.endsWith('.csv')) {
-    
-    let cols;
-    landmarks = []; 
+    // Converts the csv file into readable p5js data
     let rawText = file.data;
-    
+
+    // Split file into rows by finding every line and splitting it there
     let rows = rawText.split('\n');
 
-    if (rows.length < 99) {
+    // Makes sure there at least 1 row and that there is 99 collumns
+    if (rows.length === 0 || rows[0].split(',').length < 99) {
       return;
     }
 
-    
-
+    // For each row (frame), parse the values and add it it the main landmarks array
     for (let row = 0; row < rows.length; row++) {
+      // Let current landmarks as well as split all values in the row
       let current_landmarks = [];
-      cols = rows[row].split(',');
+      let cols = rows[row].split(',');
+
+      // Loops through each value and works in groups of 3
       for (let col = 0; col < cols.length; col+=3) {
         current_landmarks.push([
           parseFloat(cols[col]), // Found these functions by looking on the MDN and found this: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
@@ -84,10 +94,14 @@ function handleFile(file) {
           
         ]);
       }
+      // Push all current frame landmarks into the main landmarks array
       landmarks.push(current_landmarks);
     }
+    // This is to put the origin to be the nose, so it looks better for the user
     firstNoseFrame = findFirstFrameWithNose(landmarks);
     inputState = "run";  
+
+    // Makes the slider for the frames
     makeSlider(landmarks);
   } 
   else {
@@ -97,30 +111,52 @@ function handleFile(file) {
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
+  // otherCanvas = createGraphics(windowWidth, windowHeight);
   input = createFileInput(handleFile);
   input.position(20, 20); 
   input.style('z-index', '10');
-  console.log(landmarks.length);
+  frameInterval = 1000/FRAME_RATE;
+  textFont(myFont);
+  textSize(50);
+  textAlign(CENTER, CENTER);
+}
+
+function keyPressed() {
+  if (key === "a") {
+    autoPlay = !autoPlay;
+    frame = 0;
+  }
+  else if (key === " ") {
+    playbackPaused = !playbackPaused;
+  }
 }
 
 function draw() {
   background(220);
-  // slider.hide();
   if (inputState === "run") {
     scale(theScale);
-    // orbitControl();
-    // if (frame >= landmarks.length-1) {
-    //   frame = 0;
-    // }
+    orbitControl();
+    if (frame >= landmarks.length-1) {
+      frame = 0;
+    }
 
-    slider.show();
-    frame = slider.value();
-
+    
+    if (!autoPlay) {
+      slider.show();
+      frame = slider.value();
+    }
+    
     push();
     rotateX(HALF_PI);
     translate(0,0,-680);
     fill(200, 50, 50, 100);
     plane(1500); 
+    pop();
+
+    // drawFrameCount(frame, landmarks, otherCanvas);
+    push();
+    fill("black");
+    text(`Frame ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, 400, 150);
     pop();
 
     if (frame > firstNoseFrame) {
@@ -136,10 +172,10 @@ function draw() {
 
     translate(-noseX, -noseY, -noseZ);
     
-    // if (millis() > lastFrame + frameInterval) {
-    //   lastFrame = millis();
-    //   frame++;
-    // }
+    if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
+      lastFrame = millis();
+      frame++;
+    }
     for (let index = 0; index < landmarks[frame].length; index++) {
       if (index > 10) {
         drawConnections(frame, index);
@@ -153,7 +189,9 @@ function draw() {
         pop();
       }
     }
+    
   }
+  
 }
 
 function drawConnections(frame, index) {
@@ -202,7 +240,7 @@ function findFirstFrameWithNose(landmarks) {
 }
 
 function makeSlider(landmarks) {
-  slider = createSlider(0, landmarks.length-1);
+  slider = createSlider(0, landmarks.length-1, 0);
   slider.position(width/2-200,100);
   slider.size(400);
   slider.style('z-index', '10');
