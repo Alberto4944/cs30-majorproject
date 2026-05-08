@@ -4,7 +4,11 @@ let landmarkTable;
 let landmarks = [];
 let frame = 0;
 let lastFrame = 0;
-let frameInterval = 1000/30;
+let frameInterval = 1000/60;
+
+let firstNoseFrame = 0;
+
+let inputState = "import-csv";
 
 let theScale = 0.25;
 
@@ -46,72 +50,161 @@ let connections = [
   [28, 30] // 32: Right Foot Index
 ];
 
-function preload() {
-  landmarkTable = loadTable('/assets/pose_landmarks.csv', 'csv', loadData);
-}
+// function preload() {
+//   landmarkTable = loadTable('/assets/pose_landmarks.csv', 'csv', loadData);
+// }
 
-function loadData(landmarkTable) {
-  let rowCount = landmarkTable.getRowCount();
-  let colCount = landmarkTable.getColumnCount();
+// function loadData(landmarkTable) {
+//   let rowCount = landmarkTable.getRowCount();
+//   let colCount = landmarkTable.getColumnCount();
   
-  for (let row = 0; row < rowCount; row++) {
-    let current_landmarks = [];
-    for (let col = 0; col < colCount; col+=3) {
-      current_landmarks.push([landmarkTable.getNum(row, col), landmarkTable.getNum(row, col+1), landmarkTable.getNum(row, col+2)]);
+//   for (let row = 0; row < rowCount; row++) {
+//     let current_landmarks = [];
+//     for (let col = 0; col < colCount; col+=3) {
+//       current_landmarks.push([
+//         landmarkTable.getNum(row, col), 
+//         landmarkTable.getNum(row, col+1), 
+//         landmarkTable.getNum(row, col+2)]);
+//     }
+//     landmarks.push(current_landmarks);
+//   }
+// }
+
+let noseX;
+let noseY;
+let noseZ;
+
+function handleFile(file) {
+  // While looking at importing CSV files online, I found that it would be easier to parse the files rather than read them like tables. I got a whole bunch of errors when trying to import, so I found that parsing works way faster and is overall better
+  if (file.type === 'comma-separated-values' || file.name.endsWith('.csv')) {
+    let cols;
+    landmarks = []; 
+    let rawText = file.data;
+    
+    let rows = rawText.split('\n');
+
+    if (rows.length < 99) {
+      return;
     }
-    landmarks.push(current_landmarks);
+
+    for (let row = 0; row < rows.length; row++) {
+      let current_landmarks = [];
+      cols = rows[row].split(',');
+      for (let col = 0; col < cols.length; col+=3) {
+        current_landmarks.push([
+          parseFloat(cols[col]), // Found these functions by looking on the MDN and found this: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
+          parseFloat(cols[col+1]), 
+          parseFloat(cols[col+2])
+        ]);
+      }
+      landmarks.push(current_landmarks);
+    }
+    firstNoseFrame = findFirstFrameWithNose(landmarks);
+    inputState = "run";  
+  } 
+  else {
+    alert("Please upload a valid CSV file.");
   }
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
-  // viewer = createGraphics(500, 500, WEBGL);
+
+  input = createFileInput(handleFile);
+  input.position(20, 20); 
+  input.style('z-index', '10');
 }
 
 function draw() {
-  scale(theScale);
-  // clear();
   background(220);
-  // orbitControl();
-  rotationY+=0.005;
-  rotateY(rotationY);
-  if (millis() > lastFrame + frameInterval) {
-    lastFrame = millis();
-    frame++;
-  }
-  for (let index = 0; index < landmarks[frame].length; index++) {
-    if (index > 10) {
-      drawConnections(frame, index);
+  if (inputState === "run") {
+    scale(theScale);
+    orbitControl();
+    if (frame >= landmarks.length-1) {
+      frame = 0;
     }
-    else if (index === 0) {
-      push();
-      fill("black");
-      sphere(150);
-      pop();
+
+    push();
+    rotateX(HALF_PI);
+    translate(0,0,-680);
+    fill(200, 50, 50, 100);
+    plane(1500); 
+    pop();
+
+    if (frame > firstNoseFrame) {
+      noseX = landmarks[frame][0][0] * width;
+      noseY = landmarks[frame][0][1] * height;
+      noseZ = -landmarks[frame][0][2] * width / 2;
     }
-    
+    else {
+      noseX = landmarks[firstNoseFrame][0][0] * width;
+      noseY = landmarks[firstNoseFrame][0][1] * height;
+      noseZ = -landmarks[firstNoseFrame][0][2] * width / 2;
+    }
+
+    translate(-noseX, -noseY, -noseZ);
+
+    if (millis() > lastFrame + frameInterval) {
+      lastFrame = millis();
+      frame++;
+    }
+    for (let index = 0; index < landmarks[frame].length; index++) {
+      if (index > 10) {
+        drawConnections(frame, index);
+        drawTorso(frame);
+      }
+      else if (index === 0) {
+        push();
+        fill("black");
+        translate(landmarks[frame][0][0]*width,landmarks[frame][0][1]*height,-landmarks[frame][0][2]*height-210);
+        sphere(50);
+        pop();
+      }
+    }
   }
 }
 
 function drawConnections(frame, index) {
-  push();
-  translate(-landmarks[frame][0][0]*width,-landmarks[frame][0][1]*height,-landmarks[frame][0][2]*width/-250);
   strokeWeight(10*theScale);
   let theConnections = connections[index];
   for (let otherPoint of theConnections) {
-    line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, landmarks[frame][index][2]*width/3, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, landmarks[frame][otherPoint][2]*width/3);
-    // line(points[index][0]*width, points[index][1]*height, points[index][2]*width, 0, 0, 0);
+    line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, -landmarks[frame][otherPoint][2]*height/1.5);
   }
-  pop();
 }
 
 function mouseWheel(event) {
-  if (event.delta > 0) {
-    theScale+=0.1;
+  let direction = Math.sign(event.delta);
+  if (direction > 0) {
+    theScale+=0.01;
   } 
-  else {
-    if (theScale > 0.15) {
-      theScale-=0.1;
+  else if (direction < 0) {
+    theScale-=0.01;
+  }
+  theScale = constrain(theScale, 0.1, 5.0);
+}
+
+function drawTorso(frame) {
+  let leftShoulder = landmarks[frame][11];
+  let rightShoulder = landmarks[frame][12];
+  let leftHip = landmarks[frame][23];
+  let rightHip = landmarks[frame][24];
+
+  push();
+  fill('black');
+  noStroke();
+  beginShape();
+  vertex(leftShoulder[0]*width, leftShoulder[1]*height, -leftShoulder[2]*height/1.5);
+  vertex(rightShoulder[0]*width, rightShoulder[1]*height, -rightShoulder[2]*height/1.5);
+  vertex(rightHip[0]*width, rightHip[1]*height, -rightHip[2]*height/1.5);
+  vertex(leftHip[0]*width, leftHip[1]*height, -leftHip[2]*height/1.5);
+  endShape(CLOSE);
+  pop();
+}
+
+function findFirstFrameWithNose(landmarks) {
+  for (let frame = 0; frame < landmarks.length; frame++) {
+    if (!isNaN(landmarks[frame][0][0])) {
+      return frame;
     }
   }
 }
