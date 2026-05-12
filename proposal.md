@@ -4,9 +4,7 @@ This project will be a javascript version of my Research Methods 20 class. My re
 
 ## What this Project Needs:
 ### Frontend (enhances user experience):
-- Multiple functions on the entry page:
-  - Import database of all coordinates of body pose keypoints, of each video frame and **view all data**
-  - Classify strokes, with an database of categorized strokes, but with no names for the strokes
+- Import database of all coordinates of body pose keypoints, of each video frame and **view all data**
 - FULL DATA PAGE
   - Large central viewer that displays all points with customizable colors
   - a scrollable coordinate table that syncs with the player
@@ -17,6 +15,7 @@ This project will be a javascript version of my Research Methods 20 class. My re
 
 
 ## What this Project Could Have (nice to have):
+- Classify strokes, with an database of categorized strokes, but with no names for the strokes
 - Settings for saving and exporting images, videos, and datasets
 - Interface to import online datasets
 - Console or logging system to figure out issues and problems that arise while usage
