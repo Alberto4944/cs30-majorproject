@@ -1,23 +1,18 @@
 // Click and drag the mouse to view the scene from different angles.
 let viewer;
-let landmarkTable;
 let landmarks = [];
 let frame = 0;
 let lastFrame = 0;
 let frameInterval;
-
 let myFont;
-
 let otherCanvas;
 
 const FRAME_RATE = 60;
+const THE_SCALE = 0.25;
 
 let firstNoseFrame = 0;
 let slider;
 let inputState = "import-csv";
-let theScale = 0.25;
-let rotationY = 0;
-
 let autoPlay = true;
 let playbackPaused = false;
 
@@ -134,7 +129,7 @@ function keyPressed() {
 function draw() {
   background(220);
   if (inputState === "run") {
-    scale(theScale);
+    scale(THE_SCALE);
     orbitControl();
     if (frame >= landmarks.length-1) {
       frame = 0;
@@ -156,7 +151,7 @@ function draw() {
     // drawFrameCount(frame, landmarks, otherCanvas);
     push();
     fill("black");
-    text(`Frame ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, 400, 150);
+    text(`Frame: ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, 400, 150);
     pop();
 
     if (frame > firstNoseFrame) {
@@ -170,7 +165,7 @@ function draw() {
       noseZ = -landmarks[firstNoseFrame][0][2] * width / 2;
     }
 
-    translate(-noseX, -noseY, -noseZ);
+    translate(-(noseX), -noseY, -noseZ);
     
     if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
       lastFrame = millis();
@@ -195,7 +190,7 @@ function draw() {
 }
 
 function drawConnections(frame, index) {
-  strokeWeight(10*theScale);
+  strokeWeight(10*THE_SCALE);
   let theConnections = connections[index];
   for (let otherPoint of theConnections) {
     line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, -landmarks[frame][otherPoint][2]*height/1.5);
@@ -205,12 +200,12 @@ function drawConnections(frame, index) {
 function mouseWheel(event) {
   let direction = Math.sign(event.delta);
   if (direction > 0) {
-    theScale+=0.01;
+    THE_SCALE+=0.01;
   } 
   else if (direction < 0) {
-    theScale-=0.01;
+    THE_SCALE-=0.01;
   }
-  theScale = constrain(theScale, 0.1, 5.0);
+  THE_SCALE = constrain(THE_SCALE, 0.1, 5.0);
 }
 
 function drawTorso(frame) {
