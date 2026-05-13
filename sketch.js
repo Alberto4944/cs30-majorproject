@@ -7,7 +7,9 @@ let frameInterval;
 let myFont;
 let otherCanvas;
 
-const FRAME_RATE = 60;
+let input;
+
+let FRAME_RATE = 60;
 const THE_SCALE = 0.25;
 
 let firstNoseFrame = 0;
@@ -93,7 +95,7 @@ function handleFile(file) {
       landmarks.push(current_landmarks);
     }
     // This is to put the origin to be the nose, so it looks better for the user
-    firstNoseFrame = findFirstFrameWithNose(landmarks);
+    firstNoseFrame = findFirstFrameWithNose();
     inputState = "run";  
 
     // Makes the slider for the frames
@@ -114,6 +116,9 @@ function setup() {
   textFont(myFont);
   textSize(50);
   textAlign(CENTER, CENTER);
+  input = createInput('');
+  input.position(200, 150);
+  input.input(repaint);
 }
 
 function keyPressed() {
@@ -136,6 +141,7 @@ function draw() {
     }
 
     
+    
     if (!autoPlay) {
       slider.show();
       frame = slider.value();
@@ -153,6 +159,7 @@ function draw() {
     fill("black");
     text(`Frame: ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, 400, 150);
     pop();
+
 
     if (frame > firstNoseFrame) {
       noseX = landmarks[frame][0][0] * width;
@@ -175,6 +182,7 @@ function draw() {
       if (index > 10) {
         drawConnections(frame, index);
         drawTorso(frame);
+        drawPoint(index);
       }
       else if (index === 0) {
         push();
@@ -208,7 +216,7 @@ function mouseWheel(event) {
   THE_SCALE = constrain(THE_SCALE, 0.1, 5.0);
 }
 
-function drawTorso(frame) {
+function drawTorso() {
   let leftShoulder = landmarks[frame][11];
   let rightShoulder = landmarks[frame][12];
   let leftHip = landmarks[frame][23];
@@ -226,7 +234,7 @@ function drawTorso(frame) {
   pop();
 }
 
-function findFirstFrameWithNose(landmarks) {
+function findFirstFrameWithNose() {
   for (let frame = 0; frame < landmarks.length; frame++) {
     if (!isNaN(landmarks[frame][0][0])) {
       return frame;
@@ -234,9 +242,25 @@ function findFirstFrameWithNose(landmarks) {
   }
 }
 
-function makeSlider(landmarks) {
+function makeSlider() {
   slider = createSlider(0, landmarks.length-1, 0);
   slider.position(width/2-200,100);
   slider.size(400);
   slider.style('z-index', '10');
+}
+
+function drawPoint(index) {
+  push();
+  stroke("red");
+  strokeWeight(10);
+  point(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5);
+  pop();
+}
+
+function repaint() {
+  push();
+  fill("black");
+  text(`Targeted Frame Rate: ${input.value()}`, 200, 150);
+  pop();
+  FRAME_RATE = int(input.value());
 }
