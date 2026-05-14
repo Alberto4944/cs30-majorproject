@@ -141,7 +141,6 @@ function draw() {
     }
 
     
-    
     if (!autoPlay) {
       slider.show();
       frame = slider.value();
@@ -154,50 +153,54 @@ function draw() {
     plane(1500); 
     pop();
 
+
+
     // drawFrameCount(frame, landmarks, otherCanvas);
     push();
     fill("black");
     text(`Frame: ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, 400, 150);
     pop();
 
+    drawConnections(frame, index);
 
-    if (frame > firstNoseFrame) {
-      noseX = landmarks[frame][0][0] * width;
-      noseY = landmarks[frame][0][1] * height;
-      noseZ = -landmarks[frame][0][2] * width / 2;
-    }
-    else {
-      noseX = landmarks[firstNoseFrame][0][0] * width;
-      noseY = landmarks[firstNoseFrame][0][1] * height;
-      noseZ = -landmarks[firstNoseFrame][0][2] * width / 2;
-    }
 
-    translate(-(noseX), -noseY, -noseZ);
-    
-    if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
-      lastFrame = millis();
-      frame++;
-    }
-    for (let index = 0; index < landmarks[frame].length; index++) {
-      if (index > 10) {
-        drawConnections(frame, index);
-        drawTorso(frame);
-        drawPoint(index);
-      }
-      else if (index === 0) {
-        push();
-        fill("black");
-        translate(landmarks[frame][0][0]*width,landmarks[frame][0][1]*height,-landmarks[frame][0][2]*height-210);
-        sphere(50);
-        pop();
-      }
-    }
     
   }
   
 }
 
 function drawConnections(frame, index) {
+  if (frame > firstNoseFrame) {
+    noseX = landmarks[frame][0][0] * width;
+    noseY = landmarks[frame][0][1] * height;
+    noseZ = -landmarks[frame][0][2] * width / 2;
+  }
+  else {
+    noseX = landmarks[firstNoseFrame][0][0] * width;
+    noseY = landmarks[firstNoseFrame][0][1] * height;
+    noseZ = -landmarks[firstNoseFrame][0][2] * width / 2;
+  }
+
+  translate(-noseX, -noseY, -noseZ);
+  
+  if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
+    lastFrame = millis();
+    frame++;
+  }
+  for (let index = 0; index < landmarks[frame].length; index++) {
+    if (index > 10) {
+      drawConnections(frame, index);
+      drawTorso(frame);
+      drawPoint(index);
+    }
+    else if (index === 0) {
+      push();
+      fill("black");
+      translate(landmarks[frame][0][0]*width,landmarks[frame][0][1]*height,-landmarks[frame][0][2]*height-210);
+      sphere(50);
+      pop();
+    }
+  }
   strokeWeight(10*THE_SCALE);
   let theConnections = connections[index];
   for (let otherPoint of theConnections) {
@@ -264,3 +267,4 @@ function repaint() {
   pop();
   FRAME_RATE = int(input.value());
 }
+
