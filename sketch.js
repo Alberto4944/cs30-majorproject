@@ -7,10 +7,10 @@ let frameInterval;
 let myFont;
 let otherCanvas;
 
-let input;
+// let input;
 
-let FRAME_RATE = 60;
-const THE_SCALE = 0.25;
+const FRAME_RATE = 60;
+let THE_SCALE = 0.25;
 
 let firstNoseFrame = 0;
 let slider;
@@ -116,9 +116,9 @@ function setup() {
   textFont(myFont);
   textSize(50);
   textAlign(CENTER, CENTER);
-  input = createInput('');
-  input.position(200, 150);
-  input.input(repaint);
+  // input = createInput('');
+  // input.position(200, 150);
+  // input.input(repaint);
 }
 
 function keyPressed() {
@@ -139,7 +139,6 @@ function draw() {
     if (frame >= landmarks.length-1) {
       frame = 0;
     }
-
     
     if (!autoPlay) {
       slider.show();
@@ -151,17 +150,23 @@ function draw() {
     translate(0,0,-680);
     fill(200, 50, 50, 100);
     plane(1500); 
+
+    
+    if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
+      lastFrame = millis();
+      frame++;
+    }
+
     pop();
-
-
 
     // drawFrameCount(frame, landmarks, otherCanvas);
     push();
     fill("black");
     text(`Frame: ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, 400, 150);
+    // text(`${landmarks[frame][0][1]}`, 400, 150);
     pop();
 
-    drawConnections(frame, index);
+    drawConnections(frame);
 
 
     
@@ -169,7 +174,7 @@ function draw() {
   
 }
 
-function drawConnections(frame, index) {
+function drawConnections(frame) {
   if (frame > firstNoseFrame) {
     noseX = landmarks[frame][0][0] * width;
     noseY = landmarks[frame][0][1] * height;
@@ -189,7 +194,11 @@ function drawConnections(frame, index) {
   }
   for (let index = 0; index < landmarks[frame].length; index++) {
     if (index > 10) {
-      drawConnections(frame, index);
+      strokeWeight(10*THE_SCALE);
+      let theConnections = connections[index];
+      for (let otherPoint of theConnections) {
+        line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, -landmarks[frame][otherPoint][2]*height/1.5);
+      }   
       drawTorso(frame);
       drawPoint(index);
     }
@@ -201,11 +210,7 @@ function drawConnections(frame, index) {
       pop();
     }
   }
-  strokeWeight(10*THE_SCALE);
-  let theConnections = connections[index];
-  for (let otherPoint of theConnections) {
-    line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, -landmarks[frame][otherPoint][2]*height/1.5);
-  }
+  
 }
 
 function mouseWheel(event) {
