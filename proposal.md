@@ -4,13 +4,13 @@ This project will be a javascript version of my Research Methods 20 class. My re
 
 ## What this Project Needs:
 ### Frontend (enhances user experience):
-- Import database of all coordinates of body pose keypoints, of each video frame and **view all data**
+- Import database of all coordinates of body pose keypoints, of each video frame and **view all data** (Almost done)
 - FULL DATA PAGE
-  - Large central viewer that displays all points with customizable colors
-  - a scrollable coordinate table that syncs with the player
+  - Large central viewer that displays all points with customizable colors (almost done, just customize colors)
+  - a scrollable coordinate table that syncs with the player (still have to make)
 - Mobile responsiveness
-  - portrait: video on top, controls on bottom
-  - landscape: video on left, stats on right
+  - portrait: video on top, controls on bottom (not done)
+  - landscape: video on left, stats on right (not done)
 - Dark / light theme, can be toggled
 
 

@@ -7,12 +7,21 @@ let frameInterval;
 let myFont;
 let otherCanvas;
 
-const FRAME_RATE = 60;
+let FRAME_RATE = 60;
 const THE_SCALE = 0.25;
 
+let darkBackground = "grey";
+let lightBackground = 220;
+let darkModeOn = false;
+
 let firstNoseFrame = 0;
+
+// ALL INPUTS
 let slider;
-let inputState = "import-csv";
+let input;
+let frameInput;
+
+let inputState = "run";
 let autoPlay = true;
 let playbackPaused = false;
 
@@ -93,7 +102,7 @@ function handleFile(file) {
       landmarks.push(current_landmarks);
     }
     // This is to put the origin to be the nose, so it looks better for the user
-    firstNoseFrame = findFirstFrameWithNose(landmarks);
+    firstNoseFrame = findFirstFrameWithNose();
     inputState = "run";  
 
     // Makes the slider for the frames
@@ -124,17 +133,27 @@ function keyPressed() {
   else if (key === " ") {
     playbackPaused = !playbackPaused;
   }
+  else if (key === "m") {
+    darkModeOn = !darkModeOn
+  }
 }
 
 function draw() {
-  background(220);
+  if (darkModeOn) {
+    background(darkBackground);
+  }
+  else {
+    background(lightBackground);
+  }
+  if (inputState === "menuscreen") {
+    drawMenuScreen();
+  }
   if (inputState === "run") {
     scale(THE_SCALE);
     orbitControl();
     if (frame >= landmarks.length-1) {
       frame = 0;
     }
-
     
     if (!autoPlay) {
       slider.show();
@@ -153,6 +172,7 @@ function draw() {
     fill("black");
     text(`Frame: ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, 400, 150);
     pop();
+
 
     if (frame > firstNoseFrame) {
       noseX = landmarks[frame][0][0] * width;
@@ -175,6 +195,7 @@ function draw() {
       if (index > 10) {
         drawConnections(frame, index);
         drawTorso(frame);
+        drawPoint(index);
       }
       else if (index === 0) {
         push();
@@ -208,7 +229,7 @@ function mouseWheel(event) {
   THE_SCALE = constrain(THE_SCALE, 0.1, 5.0);
 }
 
-function drawTorso(frame) {
+function drawTorso() {
   let leftShoulder = landmarks[frame][11];
   let rightShoulder = landmarks[frame][12];
   let leftHip = landmarks[frame][23];
@@ -226,7 +247,7 @@ function drawTorso(frame) {
   pop();
 }
 
-function findFirstFrameWithNose(landmarks) {
+function findFirstFrameWithNose() {
   for (let frame = 0; frame < landmarks.length; frame++) {
     if (!isNaN(landmarks[frame][0][0])) {
       return frame;
@@ -234,9 +255,23 @@ function findFirstFrameWithNose(landmarks) {
   }
 }
 
-function makeSlider(landmarks) {
+function makeSlider() {
   slider = createSlider(0, landmarks.length-1, 0);
   slider.position(width/2-200,100);
   slider.size(400);
   slider.style('z-index', '10');
+}
+
+function drawPoint(index) {
+  push();
+  stroke("red");
+  strokeWeight(10);
+  point(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5);
+  pop();
+}
+
+function drawMenuScreen() {
+  input.hide();
+  slider.hide();
+  frameInput.hide();
 }
