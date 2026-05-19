@@ -7,6 +7,8 @@ let frameInterval;
 let myFont;
 let otherCanvas;
 
+// had a merge conflcit, will fix later (i just did some work on the menu screen)
+
 // let input;
 
 const FRAME_RATE = 60;
