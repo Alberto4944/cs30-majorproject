@@ -11,7 +11,12 @@ let otherCanvas;
 
 // let input;
 
+// had a merge conflcit, will fix later (i just did some work on the menu screen)
+
+// let input;
+
 const FRAME_RATE = 60;
+let THE_SCALE = 0.25;
 let THE_SCALE = 0.25;
 
 let firstNoseFrame = 0;
@@ -97,6 +102,7 @@ function handleFile(file) {
       landmarks.push(current_landmarks);
     }
     // This is to put the origin to be the nose, so it looks better for the user
+    firstNoseFrame = findFirstFrameWithNose();
     firstNoseFrame = findFirstFrameWithNose();
     inputState = "run";  
 
@@ -213,6 +219,31 @@ function drawConnections(frame) {
     }
   }
   
+  translate(-noseX, -noseY, -noseZ);
+  
+  if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
+    lastFrame = millis();
+    frame++;
+  }
+  for (let index = 0; index < landmarks[frame].length; index++) {
+    if (index > 10) {
+      strokeWeight(10*THE_SCALE);
+      let theConnections = connections[index];
+      for (let otherPoint of theConnections) {
+        line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, -landmarks[frame][otherPoint][2]*height/1.5);
+      }   
+      drawTorso(frame);
+      drawPoint(index);
+    }
+    else if (index === 0) {
+      push();
+      fill("black");
+      translate(landmarks[frame][0][0]*width,landmarks[frame][0][1]*height,-landmarks[frame][0][2]*height-210);
+      sphere(50);
+      pop();
+    }
+  }
+  
 }
 
 function mouseWheel(event) {
@@ -226,6 +257,7 @@ function mouseWheel(event) {
   THE_SCALE = constrain(THE_SCALE, 0.1, 5.0);
 }
 
+function drawTorso() {
 function drawTorso() {
   let leftShoulder = landmarks[frame][11];
   let rightShoulder = landmarks[frame][12];
@@ -245,6 +277,7 @@ function drawTorso() {
 }
 
 function findFirstFrameWithNose() {
+function findFirstFrameWithNose() {
   for (let frame = 0; frame < landmarks.length; frame++) {
     if (!isNaN(landmarks[frame][0][0])) {
       return frame;
@@ -252,6 +285,7 @@ function findFirstFrameWithNose() {
   }
 }
 
+function makeSlider() {
 function makeSlider() {
   slider = createSlider(0, landmarks.length-1, 0);
   slider.position(width/2-200,100);
