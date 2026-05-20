@@ -7,21 +7,16 @@ let frameInterval;
 let myFont;
 let otherCanvas;
 
-let FRAME_RATE = 60;
-const THE_SCALE = 0.25;
+// had a merge conflcit, will fix later (i just did some work on the menu screen)
 
-let darkBackground = "grey";
-let lightBackground = 220;
-let darkModeOn = false;
+// let input;
+
+const FRAME_RATE = 60;
+let THE_SCALE = 0.25;
 
 let firstNoseFrame = 0;
-
-// ALL INPUTS
 let slider;
-let input;
-let frameInput;
-
-let inputState = "run";
+let inputState = "import-csv";
 let autoPlay = true;
 let playbackPaused = false;
 
@@ -115,14 +110,13 @@ function handleFile(file) {
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
-  // otherCanvas = createGraphics(windowWidth, windowHeight);
+
   input = createFileInput(handleFile);
   input.position(20, 20); 
   input.style('z-index', '10');
+
   frameInterval = 1000/FRAME_RATE;
   textFont(myFont);
-  textSize(50);
-  textAlign(CENTER, CENTER);
 }
 
 function keyPressed() {
@@ -133,89 +127,92 @@ function keyPressed() {
   else if (key === " ") {
     playbackPaused = !playbackPaused;
   }
-  else if (key === "m") {
-    darkModeOn = !darkModeOn
-  }
 }
 
 function draw() {
-  if (darkModeOn) {
-    background(darkBackground);
-  }
-  else {
-    background(lightBackground);
-  }
-  if (inputState === "menuscreen") {
-    drawMenuScreen();
+  background(220);
+  if (inputState === "menu") {
+    menuScreen();
   }
   if (inputState === "run") {
-    scale(THE_SCALE);
-    orbitControl();
-    if (frame >= landmarks.length-1) {
-      frame = 0;
-    }
-    
-    if (!autoPlay) {
-      slider.show();
-      frame = slider.value();
-    }
-    
-    push();
-    rotateX(HALF_PI);
-    translate(0,0,-680);
-    fill(200, 50, 50, 100);
-    plane(1500); 
-    pop();
-
-    // drawFrameCount(frame, landmarks, otherCanvas);
-    push();
-    fill("black");
-    text(`Frame: ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, 400, 150);
-    pop();
-
-
-    if (frame > firstNoseFrame) {
-      noseX = landmarks[frame][0][0] * width;
-      noseY = landmarks[frame][0][1] * height;
-      noseZ = -landmarks[frame][0][2] * width / 2;
-    }
-    else {
-      noseX = landmarks[firstNoseFrame][0][0] * width;
-      noseY = landmarks[firstNoseFrame][0][1] * height;
-      noseZ = -landmarks[firstNoseFrame][0][2] * width / 2;
-    }
-
-    translate(-(noseX), -noseY, -noseZ);
-    
-    if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
-      lastFrame = millis();
-      frame++;
-    }
-    for (let index = 0; index < landmarks[frame].length; index++) {
-      if (index > 10) {
-        drawConnections(frame, index);
-        drawTorso(frame);
-        drawPoint(index);
-      }
-      else if (index === 0) {
-        push();
-        fill("black");
-        translate(landmarks[frame][0][0]*width,landmarks[frame][0][1]*height,-landmarks[frame][0][2]*height-210);
-        sphere(50);
-        pop();
-      }
-    }
-    
+    displayViewer();
   }
   
 }
 
-function drawConnections(frame, index) {
-  strokeWeight(10*THE_SCALE);
-  let theConnections = connections[index];
-  for (let otherPoint of theConnections) {
-    line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, -landmarks[frame][otherPoint][2]*height/1.5);
+function displayViewer() {
+  scale(THE_SCALE);
+  orbitControl();
+  if (frame >= landmarks.length-1) {
+    frame = 0;
   }
+  
+  if (!autoPlay) {
+    slider.show();
+    frame = slider.value();
+  }
+  
+  push();
+  rotateX(HALF_PI);
+  translate(0,0,-680);
+  fill(200, 50, 50, 100);
+  plane(1500); 
+
+  
+  if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
+    lastFrame = millis();
+    frame++;
+  }
+
+  pop();
+
+  // drawFrameCount(frame, landmarks, otherCanvas);
+  push();
+  fill("black");
+  text(`Frame: ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, 400, 150);
+  // text(`${landmarks[frame][0][1]}`, 400, 150);
+  pop();
+
+  drawConnections(frame);
+}
+
+function drawConnections(frame) {
+  if (frame > firstNoseFrame) {
+    noseX = landmarks[frame][0][0] * width;
+    noseY = landmarks[frame][0][1] * height;
+    noseZ = -landmarks[frame][0][2] * width / 2;
+  }
+  else {
+    noseX = landmarks[firstNoseFrame][0][0] * width;
+    noseY = landmarks[firstNoseFrame][0][1] * height;
+    noseZ = -landmarks[firstNoseFrame][0][2] * width / 2;
+  }
+
+  translate(-noseX, -noseY, -noseZ);
+  
+  if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
+    lastFrame = millis();
+    frame++;
+  }
+  for (let index = 0; index < landmarks[frame].length; index++) {
+    if (index > 10) {
+      strokeWeight(10*THE_SCALE);
+      let theConnections = connections[index];
+      for (let otherPoint of theConnections) {
+        line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, -landmarks[frame][otherPoint][2]*height/1.5);
+      }   
+      drawTorso(frame);
+      drawPoint(index);
+    }
+    else if (index === 0) {
+      push();
+      fill("black");
+      translate(landmarks[frame][0][0]*width,landmarks[frame][0][1]*height,-landmarks[frame][0][2]*height-210);
+      sphere(50);
+      pop();
+    }
+  }
+  
 }
 
 function mouseWheel(event) {
@@ -270,8 +267,14 @@ function drawPoint(index) {
   pop();
 }
 
-function drawMenuScreen() {
-  input.hide();
-  slider.hide();
-  frameInput.hide();
+function repaint() {
+  push();
+  fill("black");
+  text(`Targeted Frame Rate: ${input.value()}`, 200, 150);
+  pop();
+  FRAME_RATE = int(input.value());
+}
+
+function menuScreen() {
+  
 }
