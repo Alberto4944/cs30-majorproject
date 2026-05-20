@@ -17,7 +17,6 @@ let otherCanvas;
 
 const FRAME_RATE = 60;
 let THE_SCALE = 0.25;
-let THE_SCALE = 0.25;
 
 let firstNoseFrame = 0;
 let slider;
@@ -172,11 +171,9 @@ function displayViewer() {
 
   pop();
 
-  // drawFrameCount(frame, landmarks, otherCanvas);
   push();
   fill("black");
   text(`Frame: ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, 400, 150);
-  // text(`${landmarks[frame][0][1]}`, 400, 150);
   pop();
 
   drawConnections(frame);
@@ -258,7 +255,6 @@ function mouseWheel(event) {
 }
 
 function drawTorso() {
-function drawTorso() {
   let leftShoulder = landmarks[frame][11];
   let rightShoulder = landmarks[frame][12];
   let leftHip = landmarks[frame][23];
@@ -277,7 +273,6 @@ function drawTorso() {
 }
 
 function findFirstFrameWithNose() {
-function findFirstFrameWithNose() {
   for (let frame = 0; frame < landmarks.length; frame++) {
     if (!isNaN(landmarks[frame][0][0])) {
       return frame;
@@ -285,7 +280,6 @@ function findFirstFrameWithNose() {
   }
 }
 
-function makeSlider() {
 function makeSlider() {
   slider = createSlider(0, landmarks.length-1, 0);
   slider.position(width/2-200,100);
@@ -309,6 +303,6 @@ function repaint() {
   FRAME_RATE = int(input.value());
 }
 
-function menuScreen() {
+// function menuScreen() {
   
-}
+// }
