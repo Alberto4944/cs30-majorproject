@@ -24,6 +24,8 @@ let inputState = "import-csv";
 let autoPlay = true;
 let playbackPaused = false;
 
+let landmarkNodes = [];
+
 let connections = [
   [2, 5], // 0: Nose
   [2], // 1: Left Eye (inner)
@@ -59,6 +61,20 @@ let connections = [
   [27, 29], // 31: Left Foot Index
   [28, 30] // 32: Right Foot Index
 ];
+
+class LandmarkNode {
+  constructor(x,y,z, landmarkIndex) {
+    this.x = x * width;
+    this.y = y * height;
+    this.z = z * width / 2;
+    this.connections = connections[landmarkIndex];
+  }
+
+  drawConnection(otherNode) {
+    strokeWeight(10*THE_SCALE);
+    line(this.x, this.y, -this.z, otherNode.x, otherNode.y, -otherNode.z);
+  }
+}
 
 let noseX;
 let noseY;
@@ -180,66 +196,50 @@ function displayViewer() {
 }
 
 function drawConnections(frame) {
-  if (frame > firstNoseFrame) {
-    noseX = landmarks[frame][0][0] * width;
-    noseY = landmarks[frame][0][1] * height;
-    noseZ = -landmarks[frame][0][2] * width / 2;
+  landmarkNodes = [];
+  for (let nodeIndex = 0; nodeIndex < landmarks[0].length; nodeIndex++) {
+    landmarkNodes.push(new LandmarkNode(landmarks[frame][nodeIndex][0], landmarks[frame][nodeIndex][1], landmarks[frame][nodeIndex][2], nodeIndex));
   }
-  else {
-    noseX = landmarks[firstNoseFrame][0][0] * width;
-    noseY = landmarks[firstNoseFrame][0][1] * height;
-    noseZ = -landmarks[firstNoseFrame][0][2] * width / 2;
+  for (let node of landmarkNodes) {
+    for (let otherIndex of node.connections) {
+      node.drawConnection(landmarkNodes[otherIndex]);
+    }
   }
+  // if (frame > firstNoseFrame) {
+  //   noseX = landmarks[frame][0][0] * width;
+  //   noseY = landmarks[frame][0][1] * height;
+  //   noseZ = -landmarks[frame][0][2] * width / 2;
+  // }
+  // else {
+  //   noseX = landmarks[firstNoseFrame][0][0] * width;
+  //   noseY = landmarks[firstNoseFrame][0][1] * height;
+  //   noseZ = -landmarks[firstNoseFrame][0][2] * width / 2;
+  // }
 
-  translate(-noseX, -noseY, -noseZ);
+  // translate(-noseX, -noseY, -noseZ);
   
-  if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
-    lastFrame = millis();
-    frame++;
-  }
-  for (let index = 0; index < landmarks[frame].length; index++) {
-    if (index > 10) {
-      strokeWeight(10*THE_SCALE);
-      let theConnections = connections[index];
-      for (let otherPoint of theConnections) {
-        line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, -landmarks[frame][otherPoint][2]*height/1.5);
-      }   
-      drawTorso(frame);
-      drawPoint(index);
-    }
-    else if (index === 0) {
-      push();
-      fill("black");
-      translate(landmarks[frame][0][0]*width,landmarks[frame][0][1]*height,-landmarks[frame][0][2]*height-210);
-      sphere(50);
-      pop();
-    }
-  }
-  
-  translate(-noseX, -noseY, -noseZ);
-  
-  if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
-    lastFrame = millis();
-    frame++;
-  }
-  for (let index = 0; index < landmarks[frame].length; index++) {
-    if (index > 10) {
-      strokeWeight(10*THE_SCALE);
-      let theConnections = connections[index];
-      for (let otherPoint of theConnections) {
-        line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, -landmarks[frame][otherPoint][2]*height/1.5);
-      }   
-      drawTorso(frame);
-      drawPoint(index);
-    }
-    else if (index === 0) {
-      push();
-      fill("black");
-      translate(landmarks[frame][0][0]*width,landmarks[frame][0][1]*height,-landmarks[frame][0][2]*height-210);
-      sphere(50);
-      pop();
-    }
-  }
+  // if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
+  //   lastFrame = millis();
+  //   frame++;
+  // }
+  // for (let index = 0; index < landmarks[frame].length; index++) {
+  //   if (index > 10) {
+  //     strokeWeight(10*THE_SCALE);
+  //     let theConnections = connections[index];
+  //     for (let otherPoint of theConnections) {
+  //       line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, -landmarks[frame][otherPoint][2]*height/1.5);
+  //     }   
+  //     drawTorso(frame);
+  //     drawPoint(index);
+  //   }
+  //   else if (index === 0) {
+  //     push();
+  //     fill("black");
+  //     translate(landmarks[frame][0][0]*width,landmarks[frame][0][1]*height,-landmarks[frame][0][2]*height-210);
+  //     sphere(50);
+  //     pop();
+  //   }
+  // }
   
 }
 
@@ -302,7 +302,3 @@ function repaint() {
   pop();
   FRAME_RATE = int(input.value());
 }
-
-// function menuScreen() {
-  
-// }
