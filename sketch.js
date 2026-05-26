@@ -24,6 +24,8 @@ let inputState = "menu";
 let autoPlay = true;
 let playbackPaused = false;
 
+let firstButton;
+
 let landmarkNodes = [];
 
 let menuButtons = [];
@@ -79,32 +81,44 @@ class LandmarkNode {
 }
 
 class Button {
-  constructor(x, y, buttonText, backgroundColor, width, height) {
+  constructor(x, y, buttonText, backgroundColor, buttonWidth, buttonHeight, borderRadius) {
     this.x = x;
     this.y = y;
     this.buttonText = buttonText;
     this.backgroundColor = backgroundColor;
-    this.selectedColor = color(red(this.backgroundColor)-50, green(this.backgroundColor)-50, blue(this.backgroundColor)-50);
-    this.width = width;
-    this.height = height;
+    this.selectedColor = color(red(backgroundColor)-25, green(backgroundColor)-25, blue(backgroundColor)-25);
+    this.buttonWidth = buttonWidth;
+    this.buttonHeight = buttonHeight;
+    this.borderRadius = borderRadius;
   }
 
-  drawButton(mouseX, mouseY) {
+  drawButton() {
     noStroke();
     rectMode(CENTER);
 
-    let halfWidth = this.width/2;
-    let halfHeight = this.height/2;
+    let w = this.buttonWidth/2;
+    let h = this.buttonHeight/2;
 
-    if (mouseX > this.x - halfWidth && mouseX < this.x + halfWidth && mouseY > this.x - halfHeight && mouseY < this.y + halfHeight) {
+    // console.log(`MouseX = ${mouseX-width/2}. Button Middle X = ${this.x}`);
+    if (mouseX - width/2 > this.x - w && mouseX - width/2 < this.x + w && mouseY - height/2 > this.y - h && mouseY - height/2 < this.y + h) {
+      console.log("IN");
       fill(this.selectedColor);
     }
     else {
       fill(this.backgroundColor);
     }
-
-    rect(this.x, this.y, this.width, this.height);
+    rect(this.x, this.y, this.buttonWidth, this.buttonHeight, this.borderRadius, this.borderRadius, this.borderRadius, this.borderRadius);
+    this.drawText();
   }
+
+  drawText() {
+    textFont(myFont);
+    fill("black");
+    textAlign(CENTER);
+    textSize(this.buttonWidth/8);
+    text(this.buttonText, this.x, this.y);
+  }
+
 }
 
 let noseX;
@@ -167,10 +181,11 @@ function setup() {
   // input.position(20, 20); 
   // input.style('z-index', '10');
 
-  frameInterval = 1000/FRAME_RATE;
-  textFont(myFont);
+  // frameInterval = 1000/FRAME_RATE;
+  // textFont(myFont);
 
-  menuButtons.push(new Button(120, 120, "yay", color(255,0,0), 50, 50));
+  firstButton = new Button(-width/4, 0, "3D Viewer", color(255, 255, 0), width/3, width/3, 20);
+  secondButton = new Button(width/4, 0, "Dataset Viewer", color(255, 255, 0), width/3, width/3, 20);
 }
 
 function keyPressed() {
@@ -185,6 +200,7 @@ function keyPressed() {
 
 function draw() {
   background(220);
+  // orbitControl();
   if (inputState === "menu") {
     menuScreen();
   }
@@ -340,13 +356,11 @@ function repaint() {
 // Select mode: 3d display or full data viewer (2 boxes)
 
 function menuScreen() {
-  for (let button of menuButtons) {
-    button.drawButton(mouseX, mouseY);
-  }
+  // firstButton.isHovering();
+  firstButton.drawButton(); 
+  secondButton.drawButton();
 }
 
 function mouseClicked() {
-  for (let button of menuButtons) {
-
-  }
+  // if ()
 }
