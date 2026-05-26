@@ -20,11 +20,13 @@ let THE_SCALE = 0.25;
 
 let firstNoseFrame = 0;
 let slider;
-let inputState = "import-csv";
+let inputState = "menu";
 let autoPlay = true;
 let playbackPaused = false;
 
 let landmarkNodes = [];
+
+let menuButtons = [];
 
 let connections = [
   [2, 5], // 0: Nose
@@ -73,6 +75,35 @@ class LandmarkNode {
   drawConnection(otherNode) {
     strokeWeight(10*THE_SCALE);
     line(this.x, this.y, -this.z, otherNode.x, otherNode.y, -otherNode.z);
+  }
+}
+
+class Button {
+  constructor(x, y, buttonText, backgroundColor, width, height) {
+    this.x = x;
+    this.y = y;
+    this.buttonText = buttonText;
+    this.backgroundColor = backgroundColor;
+    this.selectedColor = color(red(this.backgroundColor)-50, green(this.backgroundColor)-50, blue(this.backgroundColor)-50);
+    this.width = width;
+    this.height = height;
+  }
+
+  drawButton(mouseX, mouseY) {
+    noStroke();
+    rectMode(CENTER);
+
+    let halfWidth = this.width/2;
+    let halfHeight = this.height/2;
+
+    if (mouseX > this.x - halfWidth && mouseX < this.x + halfWidth && mouseY > this.x - halfHeight && mouseY < this.y + halfHeight) {
+      fill(this.selectedColor);
+    }
+    else {
+      fill(this.backgroundColor);
+    }
+
+    rect(this.x, this.y, this.width, this.height);
   }
 }
 
@@ -132,12 +163,14 @@ function handleFile(file) {
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
 
-  input = createFileInput(handleFile);
-  input.position(20, 20); 
-  input.style('z-index', '10');
+  // input = createFileInput(handleFile);
+  // input.position(20, 20); 
+  // input.style('z-index', '10');
 
   frameInterval = 1000/FRAME_RATE;
   textFont(myFont);
+
+  menuButtons.push(new Button(120, 120, "yay", color(255,0,0), 50, 50));
 }
 
 function keyPressed() {
@@ -301,4 +334,19 @@ function repaint() {
   text(`Targeted Frame Rate: ${input.value()}`, 200, 150);
   pop();
   FRAME_RATE = int(input.value());
+}
+
+// TITLE
+// Select mode: 3d display or full data viewer (2 boxes)
+
+function menuScreen() {
+  for (let button of menuButtons) {
+    button.drawButton(mouseX, mouseY);
+  }
+}
+
+function mouseClicked() {
+  for (let button of menuButtons) {
+
+  }
 }
