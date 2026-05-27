@@ -5,15 +5,6 @@ let frame = 0;
 let lastFrame = 0;
 let frameInterval;
 let myFont;
-let otherCanvas;
-
-// had a merge conflcit, will fix later (i just did some work on the menu screen)
-
-// let input;
-
-// had a merge conflcit, will fix later (i just did some work on the menu screen)
-
-// let input;
 
 const FRAME_RATE = 60;
 let THE_SCALE = 0.25;
@@ -419,23 +410,6 @@ function mouseClicked() {
     }
   }
 }
-
-// function darkModeToggle() {
-//   if (darkModeEnabled) {
-//     backgroundColor = darkModeColor;
-//     foregroundColor = (255, 255, 255);
-//     darkModeToggleButton.backgroundColor = buttonDarkModeColor;
-//     darkModeToggleButton.buttonTextColor = (0, 0, 0);
-//   }
-//   else {
-//     backgroundColor = lightModeColor;
-//     foregroundColor = (0, 0, 0);
-//     darkModeToggleButton.backgroundColor = 
-//     darkModeToggleButton.buttonTextColor = (255, 255, 255);
-//   }
-  
-//   darkModeToggleButton.drawButton();
-// }
 
 function updateTheme() {
   if (darkModeEnabled) {
