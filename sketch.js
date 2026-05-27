@@ -20,15 +20,33 @@ let THE_SCALE = 0.25;
 
 let firstNoseFrame = 0;
 let slider;
-let inputState = "menu";
+let state = "MAIN MENU";
+// ALL STATES:
+// MENU - User selects either 3d viewer or all data viewer
+// 
 let autoPlay = true;
 let playbackPaused = false;
-
-let firstButton;
-
 let landmarkNodes = [];
 
+// MAIN MENU
 let menuButtons = [];
+let threeDMenuButton;
+let datasetViewerMenuButton;
+
+// 3D VIEWER MENU
+
+// DARK MODE
+let darkModeToggleButton;
+let darkModeColor;
+let lightModeColor ;
+let buttonDarkModeColor;
+let buttonLightModeColor;
+let currentButtonColor;
+
+// THEME SETTINGS
+let darkModeEnabled = true;
+let foregroundColor = "white"; // Either white or black, depending if dark mode is enabled or not
+let backgroundColor = darkModeColor;
 
 let connections = [
   [2, 5], // 0: Nose
@@ -82,25 +100,22 @@ class LandmarkNode {
 
 class Button {
   constructor(x, y, buttonText, backgroundColor, buttonWidth, buttonHeight, borderRadius) {
-    this.x = x;
-    this.y = y;
+    this.x = x-width/2;
+    this.y = y-height/2;
     this.buttonText = buttonText;
     this.backgroundColor = backgroundColor;
     this.selectedColor = color(red(backgroundColor)-25, green(backgroundColor)-25, blue(backgroundColor)-25);
     this.buttonWidth = buttonWidth;
     this.buttonHeight = buttonHeight;
-    this.borderRadius = borderRadius;
+    this.borderRadius = borderRadius; 
+    this.buttonTextColor = foregroundColor;
   }
 
   drawButton() {
     noStroke();
     rectMode(CENTER);
 
-    let w = this.buttonWidth/2;
-    let h = this.buttonHeight/2;
-
-    // console.log(`MouseX = ${mouseX-width/2}. Button Middle X = ${this.x}`);
-    if (mouseX - width/2 > this.x - w && mouseX - width/2 < this.x + w && mouseY - height/2 > this.y - h && mouseY - height/2 < this.y + h) {
+    if (this.isSelected()) {
       console.log("IN");
       fill(this.selectedColor);
     }
@@ -118,7 +133,15 @@ class Button {
     textSize(this.buttonWidth/8);
     text(this.buttonText, this.x, this.y);
   }
-
+  
+  isSelected() {
+    let w = this.buttonWidth/2;
+    let h = this.buttonHeight/2;
+    if (mouseX - width/2 > this.x - w && mouseX - width/2 < this.x + w && mouseY - height/2 > this.y - h && mouseY - height/2 < this.y + h) {
+      return true;
+    }
+    return false;
+  }
 }
 
 let noseX;
@@ -164,7 +187,7 @@ function handleFile(file) {
     // This is to put the origin to be the nose, so it looks better for the user
     firstNoseFrame = findFirstFrameWithNose();
     firstNoseFrame = findFirstFrameWithNose();
-    inputState = "run";  
+    state = "3D VIEWER";  
 
     // Makes the slider for the frames
     makeSlider(landmarks);
@@ -177,6 +200,10 @@ function handleFile(file) {
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
 
+  darkModeColor = color(16,18,17);
+  lightModeColor = color(220,220,220);
+  buttonDarkModeColor = color(35, 37, 36);
+  buttonLightModeColor = color(255, 105, 97);
   // input = createFileInput(handleFile);
   // input.position(20, 20); 
   // input.style('z-index', '10');
@@ -184,8 +211,10 @@ function setup() {
   // frameInterval = 1000/FRAME_RATE;
   // textFont(myFont);
 
-  firstButton = new Button(-width/4, 0, "3D Viewer", color(255, 255, 0), width/3, width/3, 20);
-  secondButton = new Button(width/4, 0, "Dataset Viewer", color(255, 255, 0), width/3, width/3, 20);
+  // ALL BUTTONS HAVE THEIR ORIGIN AT TOP-LEFT CORNER (0,0)
+  menuButtons.push(new Button(width/3, height/2, "3D Viewer", color(255, 255, 0), width/5, width/5, 20));
+  menuButtons.push(new Button(width/3*2, height/2, "Dataset Viewer", color(255, 255, 0), width/5, width/5, 20));
+  darkModeToggleButton = new Button(0.95*width, 0.1*height, "Dark/Light Mode", color(255,255,255), width/15, width/20);
 }
 
 function keyPressed() {
@@ -199,20 +228,24 @@ function keyPressed() {
 }
 
 function draw() {
-  background(220);
+  updateTheme();
+  background(backgroundColor);
+  darkModeToggleButton.drawButton();
   // orbitControl();
-  if (inputState === "menu") {
-    menuScreen();
+  if (state === "MAIN MENU") {
+    mainMenu();
   }
-  if (inputState === "run") {
-    displayViewer();
+  else if (state === "3D VIEWER") {
+    orbitControl();
+    threeDViewer();
   }
-  
+  else if (state === "DATASET VIEWER") {
+    datasetViewer();
+  }
 }
 
-function displayViewer() {
+function threeDViewer() {
   scale(THE_SCALE);
-  orbitControl();
   if (frame >= landmarks.length-1) {
     frame = 0;
   }
@@ -352,15 +385,82 @@ function repaint() {
   FRAME_RATE = int(input.value());
 }
 
-// TITLE
-// Select mode: 3d display or full data viewer (2 boxes)
+function mainMenu() {
+  textSize(20);
+  text("Welcome to the table tennis AI-assisted coaching web-viewer made by Albert Wu for a CS30 SDS.", 0, 100);
+  for (let button of menuButtons) {
+    button.drawButton();
+  }
+}
 
-function menuScreen() {
-  // firstButton.isHovering();
-  firstButton.drawButton(); 
-  secondButton.drawButton();
+function datasetMenu() {
+
+}
+
+function datasetViewer() {
+
+}
+
+function threeDViewerMenu() {
+
 }
 
 function mouseClicked() {
-  // if ()
+  if (darkModeToggleButton.isSelected()) {
+    darkModeEnabled = !darkModeEnabled;
+  }
+  if (state === "MAIN MENU") {
+    for (let btn of menuButtons) {
+      if (btn.isSelected()) {
+        if (btn.buttonText === "3D Viewer") {
+          state = "3D Viewer Menu";
+        }
+      }
+    }
+  }
+}
+
+// function darkModeToggle() {
+//   if (darkModeEnabled) {
+//     backgroundColor = darkModeColor;
+//     foregroundColor = (255, 255, 255);
+//     darkModeToggleButton.backgroundColor = buttonDarkModeColor;
+//     darkModeToggleButton.buttonTextColor = (0, 0, 0);
+//   }
+//   else {
+//     backgroundColor = lightModeColor;
+//     foregroundColor = (0, 0, 0);
+//     darkModeToggleButton.backgroundColor = 
+//     darkModeToggleButton.buttonTextColor = (255, 255, 255);
+//   }
+  
+//   darkModeToggleButton.drawButton();
+// }
+
+function updateTheme() {
+  if (darkModeEnabled) {
+    backgroundColor = darkModeColor;
+    foregroundColor = color(255);
+    currentButtonColor = buttonLightModeColor;
+    darkModeToggleButton.backgroundColor = color(255);
+    darkModeToggleButton.buttonTextColor = color(0);
+  }
+  else {
+    backgroundColor = lightModeColor;
+    foregroundColor = color(0);
+    currentButtonColor = buttonDarkModeColor;
+    darkModeToggleButton.backgroundColor = color(0);
+    darkModeToggleButton.buttonTextColor = color(255);
+  }
+
+  for (let button of menuButtons) {
+    button.backgroundColor = currentButtonColor;
+    button.selectedColor = color(red(currentButtonColor)-25, green(currentButtonColor)-25, blue(currentButtonColor)-25);
+    if (darkModeEnabled) {
+      button.buttonTextColor = color(255);
+    }
+    else {
+      button.buttonTextColor = color(0);
+    }
+  }
 }
