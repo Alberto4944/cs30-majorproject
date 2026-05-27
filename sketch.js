@@ -11,7 +11,7 @@ let THE_SCALE = 0.25;
 
 let firstNoseFrame = 0;
 let slider;
-let state = "MAIN MENU";
+let state = "IMPORT CSV";
 // ALL STATES:
 // MENU - User selects either 3d viewer or all data viewer
 // 
@@ -28,7 +28,7 @@ let datasetViewerMenuButton;
 
 // DARK MODE
 let darkModeToggleButton;
-let darkModeColor = (16,18,17);
+let darkModeColor;
 let lightModeColor ;
 let buttonDarkModeColor;
 let buttonLightModeColor;
@@ -36,7 +36,7 @@ let currentButtonColor;
 
 // THEME SETTINGS
 let darkModeEnabled = true;
-let foregroundColor = "white"; // Either white or black, depending if dark mode is enabled or not
+let foregroundColor = "import"; // Either white or black, depending if dark mode is enabled or not
 let backgroundColor = darkModeColor;
 
 let connections = [
@@ -95,7 +95,7 @@ class Button {
     this.y = y-height/2;
     this.buttonText = buttonText;
     this.backgroundColor = backgroundColor;
-    this.selectedColor = color(red(backgroundColor)-25, green(backgroundColor)-25, blue(backgroundColor)-25);
+    this.selectedColor = color(red(backgroundColor)-10, green(backgroundColor)-10, blue(backgroundColor)-10);
     this.buttonWidth = buttonWidth;
     this.buttonHeight = buttonHeight;
     this.borderRadius = borderRadius; 
@@ -121,7 +121,7 @@ class Button {
     textFont(myFont);
     fill(this.buttonTextColor);
     textAlign(CENTER);
-    textSize(this.buttonHeight/7);
+    textSize(this.buttonHeight/6);
     text(this.buttonText, this.x, this.y);
   }
   
@@ -143,23 +143,39 @@ function preload() {
   myFont = loadFont('fonts/Montserrat-Regular.ttf');
 }
 
+function setup() {
+  createCanvas(windowWidth, windowHeight, WEBGL);
+  darkModeColor = color(16,18,17);
+  lightModeColor = color(255,255,255);
+  buttonDarkModeColor = color(35, 37, 36);
+  buttonLightModeColor = color(220);
+
+  fill("white");
+  input = createFileInput(handleFile);
+  input.position(width*0.45, height*0.55); 
+  input.style('z-index', '10');
+
+  // frameInterval = 1000/FRAME_RATE;
+  // textFont(myFont);
+
+  // ALL BUTTONS HAVE THEIR ORIGIN AT TOP-LEFT CORNER (0,0)
+  menuButtons.push(new Button(width*0.4, height*0.6, "3D Viewer", buttonDarkModeColor, width/6, width/9, 20));
+  menuButtons.push(new Button(width*0.6, height*0.6, "Dataset Viewer", buttonDarkModeColor, width/6, width/9, 20));
+  darkModeToggleButton = new Button(0.97*width, 0.06*height, "Dark/Light", color(255,255,255), width/25, width/25, 15);
+}
+
 function handleFile(file) {
   // While looking at importing CSV files online, I found that it would be easier to parse the files rather than read them like tables. I got a whole bunch of errors when trying to import, so I found that parsing works way faster and is overall better
   if (file.type === 'comma-separated-values' || file.name.endsWith('.csv')) {
-    // Converts the csv file into readable p5js data
     let rawText = file.data;
 
-    // Split file into rows by finding every line and splitting it there
     let rows = rawText.split('\n');
 
-    // Makes sure there at least 1 row and that there is 99 collumns
     if (rows.length === 0 || rows[0].split(',').length < 99) {
       return;
     }
-
     // For each row (frame), parse the values and add it it the main landmarks array
     for (let row = 0; row < rows.length; row++) {
-      // Let current landmarks as well as split all values in the row
       let current_landmarks = [];
       let cols = rows[row].split(',');
 
@@ -172,40 +188,18 @@ function handleFile(file) {
           
         ]);
       }
-      // Push all current frame landmarks into the main landmarks array
       landmarks.push(current_landmarks);
     }
     // This is to put the origin to be the nose, so it looks better for the user
     firstNoseFrame = findFirstFrameWithNose();
     firstNoseFrame = findFirstFrameWithNose();
-    state = "3D VIEWER";  
+    state = "MAIN MENU";  
 
-    // Makes the slider for the frames
-    makeSlider(landmarks);
+    // makeSlider(landmarks);
   } 
   else {
     alert("Please upload a valid CSV file.");
   }
-}
-
-function setup() {
-  createCanvas(windowWidth, windowHeight, WEBGL);
-
-  darkModeColor = color(darkModeColor);
-  lightModeColor = color(220,220,220);
-  buttonDarkModeColor = color(35, 37, 36);
-  buttonLightModeColor = color(255, 105, 97);
-  // input = createFileInput(handleFile);
-  // input.position(20, 20); 
-  // input.style('z-index', '10');
-
-  // frameInterval = 1000/FRAME_RATE;
-  // textFont(myFont);
-
-  // ALL BUTTONS HAVE THEIR ORIGIN AT TOP-LEFT CORNER (0,0)
-  menuButtons.push(new Button(width/3, height/2, "3D Viewer", buttonDarkModeColor, width/4, width/5, 20));
-  menuButtons.push(new Button(width/3*2, height/2, "Dataset Viewer", buttonDarkModeColor, width/4, width/5, 20));
-  darkModeToggleButton = new Button(0.95*width, 0.1*height, "Dark/Light", color(255,255,255), width/15, width/15, 30);
 }
 
 function keyPressed() {
@@ -222,7 +216,10 @@ function draw() {
   updateTheme();
   background(backgroundColor);
   darkModeToggleButton.drawButton();
-  if (state === "MAIN MENU") {
+  if (state === "IMPORT CSV") {
+    importCSV();
+  }
+  else if (state === "MAIN MENU") {
     mainMenu();
   }
   else if (state === "3D VIEWER") {
@@ -277,42 +274,6 @@ function drawConnections(frame) {
       node.drawConnection(landmarkNodes[otherIndex]);
     }
   }
-  // if (frame > firstNoseFrame) {
-  //   noseX = landmarks[frame][0][0] * width;
-  //   noseY = landmarks[frame][0][1] * height;
-  //   noseZ = -landmarks[frame][0][2] * width / 2;
-  // }
-  // else {
-  //   noseX = landmarks[firstNoseFrame][0][0] * width;
-  //   noseY = landmarks[firstNoseFrame][0][1] * height;
-  //   noseZ = -landmarks[firstNoseFrame][0][2] * width / 2;
-  // }
-
-  // translate(-noseX, -noseY, -noseZ);
-  
-  // if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
-  //   lastFrame = millis();
-  //   frame++;
-  // }
-  // for (let index = 0; index < landmarks[frame].length; index++) {
-  //   if (index > 10) {
-  //     strokeWeight(10*THE_SCALE);
-  //     let theConnections = connections[index];
-  //     for (let otherPoint of theConnections) {
-  //       line(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5, landmarks[frame][otherPoint][0]*width, landmarks[frame][otherPoint][1]*height, -landmarks[frame][otherPoint][2]*height/1.5);
-  //     }   
-  //     drawTorso(frame);
-  //     drawPoint(index);
-  //   }
-  //   else if (index === 0) {
-  //     push();
-  //     fill("black");
-  //     translate(landmarks[frame][0][0]*width,landmarks[frame][0][1]*height,-landmarks[frame][0][2]*height-210);
-  //     sphere(50);
-  //     pop();
-  //   }
-  // }
-  
 }
 
 function mouseWheel(event) {
@@ -367,17 +328,20 @@ function drawPoint(index) {
   pop();
 }
 
-function repaint() {
-  push();
-  fill("black");
-  text(`Targeted Frame Rate: ${input.value()}`, 200, 150);
-  pop();
-  FRAME_RATE = int(input.value());
-}
+// function repaint() {
+//   push();
+//   fill("black");
+//   text(`Targeted Frame Rate: ${input.value()}`, 200, 150);
+//   pop();
+//   FRAME_RATE = int(input.value());
+// }
 
 function mainMenu() {
-  textSize(20);
-  text("Welcome to the table tennis AI-assisted coaching web-viewer made by Albert Wu for a CS30 SDS.", 0, 100);
+  input.hide();
+  fill(foregroundColor);
+  textSize(width*0.03);
+  text(`Next, select if you want to view the coordinates
+in 3D or view it in a regular table/chart form.`, 0, height*-0.15);
   for (let button of menuButtons) {
     button.drawButton();
   }
@@ -417,6 +381,7 @@ function updateTheme() {
     currentButtonColor = buttonDarkModeColor;
     darkModeToggleButton.backgroundColor = color(255);
     darkModeToggleButton.buttonTextColor = color(0);
+    darkModeToggleButton.buttonText = "Light Mode";
   }
   else {
     backgroundColor = lightModeColor;
@@ -424,12 +389,13 @@ function updateTheme() {
     currentButtonColor = buttonLightModeColor;
     darkModeToggleButton.backgroundColor = color(0);
     darkModeToggleButton.buttonTextColor = color(255);
+    darkModeToggleButton.buttonText = "Dark Mode";
   }
-  darkModeToggleButton.selectedColor = color(red(darkModeToggleButton.backgroundColor)-25, green(darkModeToggleButton.backgroundColor)-25, blue(darkModeToggleButton.backgroundColor)-25);
+  darkModeToggleButton.selectedColor = color(red(darkModeToggleButton.backgroundColor)-10, green(darkModeToggleButton.backgroundColor)-10, blue(darkModeToggleButton.backgroundColor)-10);
 
   for (let button of menuButtons) {
     button.backgroundColor = currentButtonColor;
-    button.selectedColor = color(red(currentButtonColor)-25, green(currentButtonColor)-25, blue(currentButtonColor)-25);
+    button.selectedColor = color(red(currentButtonColor)-10, green(currentButtonColor)-10, blue(currentButtonColor)-10);
     if (darkModeEnabled) {
       button.buttonTextColor = color(255);
     }
@@ -437,4 +403,19 @@ function updateTheme() {
       button.buttonTextColor = color(0);
     }
   }
+}
+
+function importCSV() {
+  input.show();
+  textSize(width*0.02);
+  fill(buttonLightModeColor);
+  rect(0, height*0.06, width*0.12, height*0.05, 30);
+  fill(foregroundColor);
+  text(`Welcome to the table tennis AI-assisted coaching
+web-viewer made by Albert Wu for a CS30 SDS!
+If not done already, play around with the python program,
+where you will be able to export a pose_landmarks.csv
+file, so you can import it here. Then, you can select
+either to visualize in 3D or view the full dataset in a 
+user-friendly way. Begin by importing the CSV file.`, 0, -height*0.3);
 }
