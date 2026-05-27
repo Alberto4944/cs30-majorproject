@@ -119,9 +119,9 @@ class Button {
 
   drawText() {
     textFont(myFont);
-    fill("black");
+    fill(this.buttonTextColor);
     textAlign(CENTER);
-    textSize(this.buttonWidth/8);
+    textSize(this.buttonHeight/7);
     text(this.buttonText, this.x, this.y);
   }
   
@@ -203,9 +203,9 @@ function setup() {
   // textFont(myFont);
 
   // ALL BUTTONS HAVE THEIR ORIGIN AT TOP-LEFT CORNER (0,0)
-  menuButtons.push(new Button(width/3, height/2, "3D Viewer", color(255, 255, 0), width/5, width/5, 20));
-  menuButtons.push(new Button(width/3*2, height/2, "Dataset Viewer", color(255, 255, 0), width/5, width/5, 20));
-  darkModeToggleButton = new Button(0.95*width, 0.1*height, "Dark/Light Mode", color(255,255,255), width/15, width/20);
+  menuButtons.push(new Button(width/3, height/2, "3D Viewer", buttonDarkModeColor, width/4, width/5, 20));
+  menuButtons.push(new Button(width/3*2, height/2, "Dataset Viewer", buttonDarkModeColor, width/4, width/5, 20));
+  darkModeToggleButton = new Button(0.95*width, 0.1*height, "Dark/Light", color(255,255,255), width/15, width/15, 30);
 }
 
 function keyPressed() {
@@ -222,7 +222,6 @@ function draw() {
   updateTheme();
   background(backgroundColor);
   darkModeToggleButton.drawButton();
-  // orbitControl();
   if (state === "MAIN MENU") {
     mainMenu();
   }
@@ -404,7 +403,7 @@ function mouseClicked() {
     for (let btn of menuButtons) {
       if (btn.isSelected()) {
         if (btn.buttonText === "3D Viewer") {
-          state = "3D Viewer Menu";
+          state = "3D VIEWER";
         }
       }
     }
@@ -415,17 +414,18 @@ function updateTheme() {
   if (darkModeEnabled) {
     backgroundColor = darkModeColor;
     foregroundColor = color(255);
-    currentButtonColor = buttonLightModeColor;
+    currentButtonColor = buttonDarkModeColor;
     darkModeToggleButton.backgroundColor = color(255);
     darkModeToggleButton.buttonTextColor = color(0);
   }
   else {
     backgroundColor = lightModeColor;
     foregroundColor = color(0);
-    currentButtonColor = buttonDarkModeColor;
+    currentButtonColor = buttonLightModeColor;
     darkModeToggleButton.backgroundColor = color(0);
     darkModeToggleButton.buttonTextColor = color(255);
   }
+  darkModeToggleButton.selectedColor = color(red(darkModeToggleButton.backgroundColor)-25, green(darkModeToggleButton.backgroundColor)-25, blue(darkModeToggleButton.backgroundColor)-25);
 
   for (let button of menuButtons) {
     button.backgroundColor = currentButtonColor;
