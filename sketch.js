@@ -28,7 +28,7 @@ let datasetViewerMenuButton;
 
 // DARK MODE
 let darkModeToggleButton;
-let darkModeColor;
+let darkModeColor = (16,18,17);
 let lightModeColor ;
 let buttonDarkModeColor;
 let buttonLightModeColor;
@@ -191,7 +191,7 @@ function handleFile(file) {
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
 
-  darkModeColor = color(16,18,17);
+  darkModeColor = color(darkModeColor);
   lightModeColor = color(220,220,220);
   buttonDarkModeColor = color(35, 37, 36);
   buttonLightModeColor = color(255, 105, 97);
