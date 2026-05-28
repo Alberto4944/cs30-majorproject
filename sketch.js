@@ -79,12 +79,13 @@ class LandmarkNode {
   constructor(x,y,z, landmarkIndex) {
     this.x = x * width;
     this.y = y * height;
-    this.z = z * width / 2;
+    this.z = z * width / 3;
     this.connections = connections[landmarkIndex];
   }
 
   drawConnection(otherNode) {
     strokeWeight(10*THE_SCALE);
+    stroke(foregroundColor);
     line(this.x, this.y, -this.z, otherNode.x, otherNode.y, -otherNode.z);
   }
 }
@@ -107,7 +108,6 @@ class Button {
     rectMode(CENTER);
 
     if (this.isSelected()) {
-      console.log("IN");
       fill(this.selectedColor);
     }
     else {
@@ -155,8 +155,8 @@ function setup() {
   input.position(width*0.45, height*0.55); 
   input.style('z-index', '10');
 
-  // frameInterval = 1000/FRAME_RATE;
-  // textFont(myFont);
+  frameInterval = 1000/FRAME_RATE;
+  textFont(myFont);
 
   // ALL BUTTONS HAVE THEIR ORIGIN AT TOP-LEFT CORNER (0,0)
   menuButtons.push(new Button(width*0.4, height*0.6, "3D Viewer", buttonDarkModeColor, width/6, width/9, 20));
@@ -237,16 +237,17 @@ function threeDViewer() {
     frame = 0;
   }
   
-  if (!autoPlay) {
-    slider.show();
-    frame = slider.value();
-  }
+  // if (!autoPlay) {
+  //   slider.show();
+  //   frame = slider.value();
+  // }
   
   push();
   rotateX(HALF_PI);
   translate(0,0,-680);
-  fill(200, 50, 50, 100);
+  fill(currentButtonColor);
   plane(1500); 
+  pop();
 
   
   if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
@@ -254,7 +255,6 @@ function threeDViewer() {
     frame++;
   }
 
-  pop();
 
   push();
   fill("black");
@@ -266,8 +266,8 @@ function threeDViewer() {
 
 function drawConnections(frame) {
   landmarkNodes = [];
-  for (let nodeIndex = 0; nodeIndex < landmarks[0].length; nodeIndex++) {
-    landmarkNodes.push(new LandmarkNode(landmarks[frame][nodeIndex][0], landmarks[frame][nodeIndex][1], landmarks[frame][nodeIndex][2], nodeIndex));
+  for (let nodeIndex = 0; nodeIndex < landmarks[frame].length; nodeIndex++) {
+    landmarkNodes.push(new LandmarkNode(landmarks[frame][nodeIndex][0]-0.5, landmarks[frame][nodeIndex][1]-0.2, landmarks[frame][nodeIndex][2], nodeIndex));
   }
   for (let node of landmarkNodes) {
     for (let otherIndex of node.connections) {
@@ -355,9 +355,6 @@ function datasetViewer() {
 
 }
 
-function threeDViewerMenu() {
-
-}
 
 function mouseClicked() {
   if (darkModeToggleButton.isSelected()) {
