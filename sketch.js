@@ -1,5 +1,4 @@
 // Click and drag the mouse to view the scene from different angles.
-let viewer;
 let landmarks = [];
 let frame = 0;
 let lastFrame = 0;
@@ -10,11 +9,7 @@ const FRAME_RATE = 60;
 let THE_SCALE = 0.25;
 
 let firstNoseFrame = 0;
-let slider;
 let state = "IMPORT CSV";
-// ALL STATES:
-// MENU - User selects either 3d viewer or all data viewer
-// 
 let autoPlay = true;
 let playbackPaused = false;
 let landmarkNodes = [];
@@ -23,8 +18,6 @@ let landmarkNodes = [];
 let menuButtons = [];
 let threeDMenuButton;
 let datasetViewerMenuButton;
-
-// 3D VIEWER MENU
 
 // DARK MODE
 let darkModeToggleButton;
@@ -236,11 +229,7 @@ function threeDViewer() {
   if (frame >= landmarks.length-1) {
     frame = 0;
   }
-  
-  // if (!autoPlay) {
-  //   slider.show();
-  //   frame = slider.value();
-  // }
+
   
   push();
   rotateX(HALF_PI);
