@@ -219,6 +219,9 @@ function draw() {
     orbitControl();
     threeDViewer();
   }
+  else if (state === "DATASET MENU") {
+    datasetMenu();
+  }
   else if (state === "DATASET VIEWER") {
     datasetViewer();
   }
@@ -336,15 +339,6 @@ in 3D or view it in a regular table/chart form.`, 0, height*-0.15);
   }
 }
 
-function datasetMenu() {
-
-}
-
-function datasetViewer() {
-
-}
-
-
 function mouseClicked() {
   if (darkModeToggleButton.isSelected()) {
     darkModeEnabled = !darkModeEnabled;
@@ -354,6 +348,9 @@ function mouseClicked() {
       if (btn.isSelected()) {
         if (btn.buttonText === "3D Viewer") {
           state = "3D VIEWER";
+        }
+        if (btn.buttonText === "Dataset Viewer") {
+          state = "DATASET MENU";
         }
       }
     }
@@ -404,4 +401,23 @@ where you will be able to export a pose_landmarks.csv
 file, so you can import it here. Then, you can select
 either to visualize in 3D or view the full dataset in a 
 user-friendly way. Begin by importing the CSV file.`, 0, -height*0.3);
+}
+
+// User should be able to select how many rows are visible at one time, what columns are visible (can change at any time), and maybe color
+const minimumRowHeight = 30; // PIXELS
+const maximumRowHeight = 200; // PIXELS
+let minimumRowCount;
+let maximumRowCount;
+
+function datasetMenu() {
+  let minimumRowCount = Math.floor(height/maximumRowHeight);
+  let maximumRowCount = Math.floor(height/minimumRowHeight);
+  fill(foregroundColor);
+  textSize(width*0.02);
+  text(`Minimum Rows Visible: ${minimumRowCount}, Maximum Rows Visible: ${maximumRowCount}, Since Height = ${height}px`, 0, 0);
+
+}
+
+function datasetViewer() {
+
 }
