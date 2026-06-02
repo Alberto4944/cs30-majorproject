@@ -32,6 +32,18 @@ let darkModeEnabled = true;
 let foregroundColor = "import"; // Either white or black, depending if dark mode is enabled or not
 let backgroundColor = darkModeColor;
 
+// DATASET VIEWER
+let datasetHeaders = [];
+let datasetRows = [];
+let datasetTab = "Table";
+let datasetTabButtons = [];
+let tableScrollY = 0;
+let rowHeight = 28;
+let visibleCols = [];
+let chartLandmarks = ["lm0_x", "lm0_y", "lm15_x", "lm15_y", "lm13_x", "lm13_y"];
+let chartColors = ["#FF6B6B", "#FF8E53", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"];
+
+
 let connections = [
   [2, 5], // 0: Nose
   [2], // 1: Left Eye (inner)
@@ -188,7 +200,26 @@ function handleFile(file) {
     firstNoseFrame = findFirstFrameWithNose();
     state = "MAIN MENU";  
 
-    // makeSlider(landmarks);
+    // Generate column names since pose_landmarks.csv has no header
+    datasetHeaders = [];
+    for (let i = 0; i < 33; i++) {
+      datasetHeaders.push(`lm${i}_x`);
+      datasetHeaders.push(`lm${i}_y`);
+      datasetHeaders.push(`lm${i}_z`);
+    }
+
+    // Store raw rows for the table viewer
+    datasetRows = [];
+    for (let row = 0; row < rows.length; row++) {
+      if (rows[row].trim() === "") {
+        continue;
+      }
+      datasetRows.push(rows[row].split(','));
+    }
+
+    // Default visible columns — nose, right wrist, right elbow. WOULD WANT TO MAKE USER CHANGEABLE
+    visibleCols = [0, 1, 2, 45, 46, 47, 39, 40, 41];
+
   } 
   else {
     alert("Please upload a valid CSV file.");
@@ -226,6 +257,9 @@ function draw() {
     datasetViewer();
   }
 }
+
+
+
 
 function threeDViewer() {
   scale(THE_SCALE);
@@ -269,6 +303,13 @@ function drawConnections(frame) {
 }
 
 function mouseWheel(event) {
+  if (state === "DATASET VIEWER" && datasetTab === "Table") {
+    tableScrollY += event.delta * 0.5;
+    let totalH = datasetRows.length * rowHeight;
+    let viewH = height * 0.8;
+    tableScrollY = constrain(tableScrollY, 0, max(0, totalH - viewH));
+    return; // stop here so it doesn't also zoom
+  }
   let direction = Math.sign(event.delta);
   if (direction > 0) {
     THE_SCALE+=0.01;
@@ -355,6 +396,23 @@ function mouseClicked() {
       }
     }
   }
+  if (state === "DATASET MENU") {
+    for (let btn of datasetTabButtons) {
+      if (btn.isSelected()) {
+        datasetTab = btn.buttonText;
+        state = "DATASET VIEWER";
+        tableScrollY = 0;
+      }
+    }
+}
+  if (state === "DATASET VIEWER") {
+    for (let btn of datasetTabButtons) {
+      if (btn.isSelected()) {
+        datasetTab = btn.buttonText;
+        tableScrollY = 0;
+      }
+    }
+  }
 }
 
 function updateTheme() {
@@ -403,21 +461,167 @@ either to visualize in 3D or view the full dataset in a
 user-friendly way. Begin by importing the CSV file.`, 0, -height*0.3);
 }
 
-// User should be able to select how many rows are visible at one time, what columns are visible (can change at any time), and maybe color
-const minimumRowHeight = 30; // PIXELS
-const maximumRowHeight = 200; // PIXELS
-let minimumRowCount;
-let maximumRowCount;
-
 function datasetMenu() {
-  let minimumRowCount = Math.floor(height/maximumRowHeight);
-  let maximumRowCount = Math.floor(height/minimumRowHeight);
   fill(foregroundColor);
-  textSize(width*0.02);
-  text(`Minimum Rows Visible: ${minimumRowCount}, Maximum Rows Visible: ${maximumRowCount}, Since Height = ${height}px`, 0, 0);
+  textSize(width * 0.025);
+  textAlign(CENTER);
+  text("Dataset Viewer", 0, -height * 0.3);
+    
+  // Frame count
+  textSize(width * 0.013);
+  text(`${datasetRows.length} frames loaded and ${datasetHeaders.length} columns`, 0, -height * 0.22);
 
+  // Create buttons only once
+  if (datasetTabButtons.length === 0) {
+    datasetTabButtons.push(new Button(width * 0.4, height * 0.55, "Table", currentButtonColor, width / 7, width / 12, 16));
+    datasetTabButtons.push(new Button(width * 0.6, height * 0.55, "Chart", currentButtonColor, width / 7, width / 12, 16));
+  }
+
+  // Update colors to match current theme and draw
+  for (let btn of datasetTabButtons) {
+    btn.backgroundColor = currentButtonColor;
+    btn.buttonTextColor = foregroundColor;
+    btn.drawButton();
+  }
 }
 
 function datasetViewer() {
+  // Update button colors to match theme
+  for (let btn of datasetTabButtons) {
+    btn.backgroundColor = currentButtonColor;
+    btn.buttonTextColor = foregroundColor;
+  }
 
+  // Position and draw tab buttons across the top
+  let tabY = -height / 2 + 40;
+  push();
+  for (let i = 0; i < datasetTabButtons.length; i++) {
+    datasetTabButtons[i].x = (i - (datasetTabButtons.length - 1) / 2) * (width / 6);
+    datasetTabButtons[i].y = tabY;
+    datasetTabButtons[i].drawButton();
+
+    // Underline the active tab
+    if (datasetTabButtons[i].buttonText === datasetTab) {
+      stroke(color(78, 205, 196));
+      strokeWeight(3);
+      fill(0,0);
+      let bx = datasetTabButtons[i].x;
+      let bw = datasetTabButtons[i].buttonWidth / 2;
+      let by = datasetTabButtons[i].y + datasetTabButtons[i].buttonHeight / 2 - 4;
+      line(bx - bw + 8, by, bx + bw - 8, by);
+    }
+  }
+  pop();
+
+  // Show the right view
+  if (datasetTab === "Table") {
+    drawDataTable();
+  } 
+  else {
+    drawDataChart();
+  }
+}
+
+function drawDataTable() {
+  if (datasetRows.length === 0) { // If there is now rows, then we just return and show that there is no data
+    fill(foregroundColor);
+    textSize(16);
+    textAlign(CENTER);
+    text("No data loaded", 0, 0);
+    return;
+  }
+
+  let colWidth = constrain(width / visibleCols.length, 60, 160);
+  let startX = -width / 2 + 10;
+  let headerHeight = rowHeight + 6;
+  let clipTop = -height / 2 + 90 + headerHeight;
+
+  // Header row background
+  push();
+  noStroke();
+  fill(currentButtonColor);
+  rectMode(CORNER);
+  rect(-width / 2, -height / 2 + 90, width, headerHeight);
+  pop();
+
+  // Header text
+  push();
+  fill(foregroundColor);
+  textSize(11);
+  textAlign(LEFT);
+  textFont(myFont);
+  for (let i = 0; i < visibleCols.length; i++) {
+    let columnIndex = visibleCols[i];
+    let x = startX + i * colWidth;
+    text(datasetHeaders[columnIndex] || "", x + 4, -height / 2 + 90 + headerHeight / 2 + 4);
+  }
+  pop();
+
+  // Data rows
+  push();
+  textSize(10);
+  textAlign(LEFT);
+  textFont(myFont);
+  for (let row = 0; row < datasetRows.length; row++) {
+    let y = -height / 2 + 90 + headerHeight + row * rowHeight - tableScrollY;
+
+    // Skip rows outside the area visible
+    if (y + rowHeight < clipTop || y > height / 2) {
+      continue;
+    }
+
+    // Alternate row colors
+    noStroke();
+    if (row % 2 === 0) {
+      if (darkModeEnabled) {
+        fill(color(30, 32, 31));
+      }
+      else {
+        fill(color(245));
+      }
+    } 
+    else {
+      if (darkModeEnabled) {
+        fill(color(22, 24, 23));
+      }
+      else {
+        fill(color(255));
+      }
+    }
+
+    rectMode(CORNER);
+    rect(-width / 2, y, width, rowHeight);
+
+    // Cell values
+    fill(foregroundColor);
+    for (let i = 0; i < visibleCols.length; i++) {
+      let columnIndex = visibleCols[i];
+      let x = startX + i * colWidth;
+      let val = datasetRows[row][columnIndex] || "";
+      let parsed = parseFloat(val);
+      let display;
+      if (isNaN(parsed)) {
+        display = val;
+      } 
+      else {
+        display = parsed.toFixed(4);
+      }
+      text(display, x + 4, y + rowHeight / 2 + 4);
+    }
+  }
+  pop();
+
+  // Scrollbar
+  let totalHeight = datasetRows.length * rowHeight;
+  let viewHeight = height * 0.8;
+  if (totalHeight > viewHeight) {
+    let barH = viewHeight / totalHeight * viewHeight;
+    let barY = -height / 2 + 90 + headerHeight + tableScrollY / totalHeight * viewHeight;
+    push();
+    noStroke();
+    fill(100);
+    rectMode(CORNER);
+    rect(width / 2 - 10, barY, 6, barH, 3);
+    pop();
+  }
 }
