@@ -258,9 +258,6 @@ function draw() {
   }
 }
 
-
-
-
 function threeDViewer() {
   scale(THE_SCALE);
   if (frame >= landmarks.length-1) {
@@ -360,14 +357,6 @@ function drawPoint(index) {
   point(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5);
   pop();
 }
-
-// function repaint() {
-//   push();
-//   fill("black");
-//   text(`Targeted Frame Rate: ${input.value()}`, 200, 150);
-//   pop();
-//   FRAME_RATE = int(input.value());
-// }
 
 function mainMenu() {
   input.hide();
@@ -532,7 +521,7 @@ function drawDataTable() {
   }
 
   let colWidth = constrain(width / visibleCols.length, 60, 160);
-  let startX = -width / 2 + 10;
+  let startX = -width / 2 + 150;
   let headerHeight = rowHeight + 6;
   let clipTop = -height / 2 + 90 + headerHeight;
 
