@@ -29,7 +29,7 @@ let currentButtonColor;
 
 // THEME SETTINGS
 let darkModeEnabled = true;
-let foregroundColor = "import"; // Either white or black, depending if dark mode is enabled or not
+let foregroundColor = "white"; // Either white or black, depending if dark mode is enabled or not
 let backgroundColor = darkModeColor;
 
 // DATASET VIEWER
@@ -163,7 +163,7 @@ function setup() {
   frameInterval = 1000/FRAME_RATE;
   textFont(myFont);
 
-  // ALL BUTTONS HAVE THEIR ORIGIN AT TOP-LEFT CORNER (0,0)
+  // // ALL BUTTONS HAVE THEIR ORIGIN AT TOP-LEFT CORNER (0,0)
   menuButtons.push(new Button(width*0.4, height*0.6, "3D Viewer", buttonDarkModeColor, width/6, width/9, 20));
   menuButtons.push(new Button(width*0.6, height*0.6, "Dataset Viewer", buttonDarkModeColor, width/6, width/9, 20));
   darkModeToggleButton = new Button(0.97*width, 0.06*height, "Dark/Light", color(255,255,255), width/25, width/25, 15);
@@ -248,6 +248,9 @@ function draw() {
   }
   else if (state === "3D VIEWER") {
     orbitControl();
+    // let angle = frameCount * 0.002;
+    // rotateY(angle);
+    drawPhysicalTable();
     threeDViewer();
   }
   else if (state === "DATASET MENU") {
@@ -256,7 +259,13 @@ function draw() {
   else if (state === "DATASET VIEWER") {
     datasetViewer();
   }
+  else if (state === "test") {
+    drawPhysicalTable();
+  }
 }
+
+
+
 
 function threeDViewer() {
   scale(THE_SCALE);
@@ -358,6 +367,14 @@ function drawPoint(index) {
   pop();
 }
 
+// function repaint() {
+//   push();
+//   fill("black");
+//   text(`Targeted Frame Rate: ${input.value()}`, 200, 150);
+//   pop();
+//   FRAME_RATE = int(input.value());
+// }
+
 function mainMenu() {
   input.hide();
   fill(foregroundColor);
@@ -423,16 +440,16 @@ function updateTheme() {
   }
   darkModeToggleButton.selectedColor = color(red(darkModeToggleButton.backgroundColor)-10, green(darkModeToggleButton.backgroundColor)-10, blue(darkModeToggleButton.backgroundColor)-10);
 
-  for (let button of menuButtons) {
-    button.backgroundColor = currentButtonColor;
-    button.selectedColor = color(red(currentButtonColor)-10, green(currentButtonColor)-10, blue(currentButtonColor)-10);
-    if (darkModeEnabled) {
-      button.buttonTextColor = color(255);
-    }
-    else {
-      button.buttonTextColor = color(0);
-    }
-  }
+  // for (let button of menuButtons) {
+  //   button.backgroundColor = currentButtonColor;
+  //   button.selectedColor = color(red(currentButtonColor)-10, green(currentButtonColor)-10, blue(currentButtonColor)-10);
+  //   if (darkModeEnabled) {
+  //     button.buttonTextColor = color(255);
+  //   }
+  //   else {
+  //     button.buttonTextColor = color(0);
+  //   }
+  // }
 }
 
 function importCSV() {
@@ -521,7 +538,7 @@ function drawDataTable() {
   }
 
   let colWidth = constrain(width / visibleCols.length, 60, 160);
-  let startX = -width / 2 + 150;
+  let startX = -width / 2 + 10;
   let headerHeight = rowHeight + 6;
   let clipTop = -height / 2 + 90 + headerHeight;
 
@@ -613,4 +630,54 @@ function drawDataTable() {
     rect(width / 2 - 10, barY, 6, barH, 3);
     pop();
   }
+}
+
+let tableLength = 274;
+let tableWidth = 152.5;
+let tableThickness = 10;
+let netHeight = 15.25;
+let tableHeight = 76;
+
+function drawPhysicalTable() {
+  push();
+  fill(0, 117, 255);
+  translate(0, 87, 170);
+  box(tableWidth, tableThickness, tableLength);
+  noFill();
+  strokeWeight(1);
+  stroke("white");
+  translate(0, -tableThickness/2, 0);
+  box(tableWidth, tableThickness/10, tableLength);
+  for (let widthFactor of [-4, 4]) {
+    for (let heightFactor of [-4, 4]) {
+      push();
+      translate(tableWidth/widthFactor, 0, tableLength/heightFactor);
+      box(tableWidth/2, tableThickness/10, tableLength/2);
+      pop();
+    }
+  }
+
+
+  translate(0, -tableThickness/2, 0);
+  box(tableWidth, netHeight, 2);
+  
+  for (let widthFactor of [-2, 2]) {
+    for (let heightFactor of [-2, 2]) {
+      push();
+      translate(tableWidth/widthFactor-widthFactor, tableHeight/2+tableThickness*1.5, tableLength/heightFactor-heightFactor);
+      fill(195, 201, 197);
+      noStroke();
+      box(4, tableHeight, 4);
+      pop();
+    }
+  }
+
+  // push();
+  // translate(tableWidth/2-3, tableHeight/2+tableThickness*1.5, tableLength/2-3);
+  // fill("gray");
+  // box(5, tableHeight, 5);
+  // pop();
+
+  pop();
+
 }
