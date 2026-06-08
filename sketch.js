@@ -43,6 +43,8 @@ let visibleCols = [];
 let chartLandmarks = ["lm0_x", "lm0_y", "lm15_x", "lm15_y", "lm13_x", "lm13_y"];
 let chartColors = ["#FF6B6B", "#FF8E53", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"];
 
+let tipsButton;
+let tipsEnabled = false;
 
 let connections = [
   [2, 5], // 0: Nose
@@ -96,7 +98,7 @@ class LandmarkNode {
 }
 
 class Button {
-  constructor(x, y, buttonText, backgroundColor, buttonWidth, buttonHeight, borderRadius) {
+  constructor(x, y, buttonText, backgroundColor, buttonWidth, buttonHeight, borderRadius, buttonTextSize = 6) {
     this.x = x-width/2;
     this.y = y-height/2;
     this.buttonText = buttonText;
@@ -106,6 +108,7 @@ class Button {
     this.buttonHeight = buttonHeight;
     this.borderRadius = borderRadius; 
     this.buttonTextColor = foregroundColor;
+    this.buttonTextSize = buttonTextSize;
   }
 
   drawButton() {
@@ -126,7 +129,8 @@ class Button {
     textFont(myFont);
     fill(this.buttonTextColor);
     textAlign(CENTER);
-    textSize(this.buttonHeight/6);
+    textSize(this.buttonHeight/this.buttonTextSize);
+    
     text(this.buttonText, this.x, this.y);
   }
   
@@ -167,6 +171,9 @@ function setup() {
   menuButtons.push(new Button(width*0.4, height*0.6, "3D Viewer", buttonDarkModeColor, width/6, width/9, 20));
   menuButtons.push(new Button(width*0.6, height*0.6, "Dataset Viewer", buttonDarkModeColor, width/6, width/9, 20));
   darkModeToggleButton = new Button(0.97*width, 0.06*height, "Dark/Light", color(255,255,255), width/25, width/25, 15);
+
+  tipsButton = new Button(0.97*width, 0.94*height, "Tips", color(255,255,255), width/25, width/25, 15, 4);
+  // strokeTips = new Button)
 }
 
 function handleFile(file) {
@@ -240,6 +247,7 @@ function draw() {
   updateTheme();
   background(backgroundColor);
   darkModeToggleButton.drawButton();
+  tipsButton.drawButton();
   if (state === "IMPORT CSV") {
     importCSV();
   }
@@ -262,10 +270,10 @@ function draw() {
   else if (state === "test") {
     drawPhysicalTable();
   }
+  else if (state === "TIPS") {
+    tipsScreen();
+  }
 }
-
-
-
 
 function threeDViewer() {
   scale(THE_SCALE);
@@ -286,7 +294,6 @@ function threeDViewer() {
     lastFrame = millis();
     frame++;
   }
-
 
   push();
   fill("black");
@@ -419,6 +426,16 @@ function mouseClicked() {
       }
     }
   }
+  if (tipsButton.isSelected()) {
+    if (tipsEnabled) {
+      state = previousState;
+    }
+    if (!tipsEnabled) {
+      previousState = state;
+      state = "TIPS";
+    }
+    tipsEnabled = !tipsEnabled;
+  }
 }
 
 function updateTheme() {
@@ -440,16 +457,25 @@ function updateTheme() {
   }
   darkModeToggleButton.selectedColor = color(red(darkModeToggleButton.backgroundColor)-10, green(darkModeToggleButton.backgroundColor)-10, blue(darkModeToggleButton.backgroundColor)-10);
 
-  // for (let button of menuButtons) {
-  //   button.backgroundColor = currentButtonColor;
-  //   button.selectedColor = color(red(currentButtonColor)-10, green(currentButtonColor)-10, blue(currentButtonColor)-10);
-  //   if (darkModeEnabled) {
-  //     button.buttonTextColor = color(255);
-  //   }
-  //   else {
-  //     button.buttonTextColor = color(0);
-  //   }
-  // }
+  for (let button of menuButtons) {
+    button.backgroundColor = currentButtonColor;
+    button.selectedColor = color(red(currentButtonColor)-10, green(currentButtonColor)-10, blue(currentButtonColor)-10);
+    if (darkModeEnabled) {
+      button.buttonTextColor = color(255);
+    }
+    else {
+      button.buttonTextColor = color(0);
+    }
+  }
+
+  tipsButton.backgroundColor = currentButtonColor;
+  tipsButton.selectedColor = color(red(currentButtonColor)-10, green(currentButtonColor)-10, blue(currentButtonColor)-10);
+  if (darkModeEnabled) {
+    tipsButton.buttonTextColor = color(255);
+  }
+  else {
+    tipsButton.buttonTextColor = color(0);
+  }
 }
 
 function importCSV() {
@@ -680,4 +706,20 @@ function drawPhysicalTable() {
 
   pop();
 
+}
+
+function tipsScreen() {
+  input.hide();
+
+  fill(currentButtonColor);
+  rect(0, 0, width*0.85, height*0.85, 30);
+
+  textSize(width*0.02);
+  fill(foregroundColor);
+  text(`
+This is the tips screen! Click around to explore the different
+ strokes, strategies, and concepts intable tennis, which you
+  can use to compare to your own game and stroke training.`, 0, -height*0.38);
+
+  
 }
