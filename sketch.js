@@ -3,7 +3,8 @@ let landmarks = [];
 let frame = 0;
 let lastFrame = 0;
 let frameInterval;
-let myFont;
+let regularFont;
+let boldFont;
 
 const FRAME_RATE = 60;
 let THE_SCALE = 0.25;
@@ -45,6 +46,23 @@ let chartColors = ["#FF6B6B", "#FF8E53", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEA
 
 let tipsButton;
 let tipsEnabled = false;
+
+// EXEMPLAR VIEWER, FOR THE TIPS SCREEN
+let exemplarLandmarks = [];
+let exemplarFrame = 0;
+let lastExemplarFrame = 0;
+let currentTipStroke = "None"; // Tracks which stroke details to display
+let tipGridButtons = [];
+
+let noseX;
+let noseY;
+let noseZ;
+
+const TABLE_LENGTH = 274;
+const TABLE_WIDTH = 152.5;
+const TABLE_THICKNESS = 10;
+const NET_HEIGHT = 15.25;
+const TABLE_HEIGHT = 76;
 
 let connections = [
   [2, 5], // 0: Nose
@@ -126,12 +144,13 @@ class Button {
   }
 
   drawText() {
-    textFont(myFont);
+    push();
     fill(this.buttonTextColor);
-    textAlign(CENTER);
+    textAlign(CENTER, CENTER);
     textSize(this.buttonHeight/this.buttonTextSize);
     
     text(this.buttonText, this.x, this.y);
+    pop();
   }
   
   isSelected() {
@@ -144,12 +163,9 @@ class Button {
   }
 }
 
-let noseX;
-let noseY;
-let noseZ;
-
 function preload() {
-  myFont = loadFont('fonts/Montserrat-Regular.ttf');
+  regularFont = loadFont('fonts/JetBrainsMono-Regular.ttf');
+  boldFont = loadFont('fonts/JetBrainsMono-Bold.ttf');
 }
 
 function setup() {
@@ -161,11 +177,11 @@ function setup() {
 
   fill("white");
   input = createFileInput(handleFile);
-  input.position(width*0.45, height*0.55); 
+  input.position(width*0.44, height*0.55); 
   input.style('z-index', '10');
 
   frameInterval = 1000/FRAME_RATE;
-  textFont(myFont);
+  textFont(regularFont);
 
   // // ALL BUTTONS HAVE THEIR ORIGIN AT TOP-LEFT CORNER (0,0)
   menuButtons.push(new Button(width*0.4, height*0.6, "3D Viewer", buttonDarkModeColor, width/6, width/9, 20));
@@ -173,7 +189,38 @@ function setup() {
   darkModeToggleButton = new Button(0.97*width, 0.06*height, "Dark/Light", color(255,255,255), width/25, width/25, 15);
 
   tipsButton = new Button(0.97*width, 0.94*height, "Tips", color(255,255,255), width/25, width/25, 15, 4);
-  // strokeTips = new Button)
+}
+
+function loadExemplarData(fileName, strokeName) {
+  exemplarLandmarks = [];
+  exemplarFrame = 0;
+  currentTipStroke = strokeName;
+  
+  loadStrings("examples/" + fileName, function(rows) {
+    if (rows.length === 0) {
+      return;
+    }
+    
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].trim() === "") {
+        continue;
+      }
+      
+      let cols = rows[i].split(',');
+      let current_landmarks = [];
+      
+      for (let col = 0; col < cols.length; col += 3) {
+        if (cols[col]) {
+          current_landmarks.push([
+            parseFloat(cols[col]),
+            parseFloat(cols[col+1]),
+            parseFloat(cols[col+2])
+          ]);
+        }
+      }
+      exemplarLandmarks.push(current_landmarks);
+    }
+  });
 }
 
 function handleFile(file) {
@@ -246,6 +293,12 @@ function keyPressed() {
 function draw() {
   updateTheme();
   background(backgroundColor);
+
+  if (width < height) {
+    drawRotatePrompt();
+    return;
+  }
+
   darkModeToggleButton.drawButton();
   tipsButton.drawButton();
   if (state === "IMPORT CSV") {
@@ -374,14 +427,6 @@ function drawPoint(index) {
   pop();
 }
 
-// function repaint() {
-//   push();
-//   fill("black");
-//   text(`Targeted Frame Rate: ${input.value()}`, 200, 150);
-//   pop();
-//   FRAME_RATE = int(input.value());
-// }
-
 function mainMenu() {
   input.hide();
   fill(foregroundColor);
@@ -417,7 +462,7 @@ function mouseClicked() {
         tableScrollY = 0;
       }
     }
-}
+  }
   if (state === "DATASET VIEWER") {
     for (let btn of datasetTabButtons) {
       if (btn.isSelected()) {
@@ -435,6 +480,28 @@ function mouseClicked() {
       state = "TIPS";
     }
     tipsEnabled = !tipsEnabled;
+  }
+  if (state === "TIPS") {
+    for (let i = 0; i < tipGridButtons.length; i++) {
+      let btn = tipGridButtons[i];
+      if (btn.isSelected()) {
+        if (btn.buttonText === "Forehand") {
+          loadExemplarData("forehand_drive.csv", "Forehand");
+        }
+        if (btn.buttonText === "Backhand") {
+          loadExemplarData("backhand_drive.csv", "Backhand");
+        }
+        if (btn.buttonText === "Loop") {
+          loadExemplarData("forehand_loop.csv", "Loop");
+        }
+        if (btn.buttonText === "Push") {
+          loadExemplarData("backspin_push.csv", "Push");
+        }
+        if (btn.buttonText === "Serve") {
+          loadExemplarData("pendulum_serve.csv", "Serve");
+        }
+      }
+    }
   }
 }
 
@@ -468,6 +535,17 @@ function updateTheme() {
     }
   }
 
+  for (let button of tipGridButtons) {
+    button.backgroundColor = currentButtonColor;
+    button.selectedColor = color(red(currentButtonColor)-10, green(currentButtonColor)-10, blue(currentButtonColor)-10);
+    if (darkModeEnabled) {
+      button.buttonTextColor = color(255);
+    }
+    else {
+      button.buttonTextColor = color(0);
+    }
+  }
+
   tipsButton.backgroundColor = currentButtonColor;
   tipsButton.selectedColor = color(red(currentButtonColor)-10, green(currentButtonColor)-10, blue(currentButtonColor)-10);
   if (darkModeEnabled) {
@@ -480,10 +558,12 @@ function updateTheme() {
 
 function importCSV() {
   input.show();
-  textSize(width*0.02);
+  textSize(height*0.04);
   fill(buttonLightModeColor);
-  rect(0, height*0.06, width*0.12, height*0.05, 30);
+  rectMode(CENTER);
+  rect(0, height*0.06, width*0.14, height*0.05, 30);
   fill(foregroundColor);
+  textAlign(CENTER);
   text(`Welcome to the table tennis AI-assisted coaching
 web-viewer made by Albert Wu for a CS30 SDS!
 If not done already, play around with the python program,
@@ -581,7 +661,6 @@ function drawDataTable() {
   fill(foregroundColor);
   textSize(11);
   textAlign(LEFT);
-  textFont(myFont);
   for (let i = 0; i < visibleCols.length; i++) {
     let columnIndex = visibleCols[i];
     let x = startX + i * colWidth;
@@ -593,7 +672,6 @@ function drawDataTable() {
   push();
   textSize(10);
   textAlign(LEFT);
-  textFont(myFont);
   for (let row = 0; row < datasetRows.length; row++) {
     let y = -height / 2 + 90 + headerHeight + row * rowHeight - tableScrollY;
 
@@ -658,68 +736,246 @@ function drawDataTable() {
   }
 }
 
-let tableLength = 274;
-let tableWidth = 152.5;
-let tableThickness = 10;
-let netHeight = 15.25;
-let tableHeight = 76;
-
 function drawPhysicalTable() {
   push();
   fill(0, 117, 255);
   translate(0, 87, 170);
-  box(tableWidth, tableThickness, tableLength);
+  box(TABLE_WIDTH, TABLE_THICKNESS, TABLE_LENGTH);
   noFill();
   strokeWeight(1);
   stroke("white");
-  translate(0, -tableThickness/2, 0);
-  box(tableWidth, tableThickness/10, tableLength);
+  translate(0, -TABLE_THICKNESS/2, 0);
+  box(TABLE_WIDTH, TABLE_THICKNESS/10, TABLE_LENGTH);
   for (let widthFactor of [-4, 4]) {
     for (let heightFactor of [-4, 4]) {
       push();
-      translate(tableWidth/widthFactor, 0, tableLength/heightFactor);
-      box(tableWidth/2, tableThickness/10, tableLength/2);
+      translate(TABLE_WIDTH/widthFactor, 0, TABLE_LENGTH/heightFactor);
+      box(TABLE_WIDTH/2, TABLE_THICKNESS/10, TABLE_LENGTH/2);
       pop();
     }
   }
 
 
-  translate(0, -tableThickness/2, 0);
-  box(tableWidth, netHeight, 2);
+  translate(0, -TABLE_THICKNESS/2, 0);
+  box(TABLE_WIDTH, NET_HEIGHT, 2);
   
   for (let widthFactor of [-2, 2]) {
     for (let heightFactor of [-2, 2]) {
       push();
-      translate(tableWidth/widthFactor-widthFactor, tableHeight/2+tableThickness*1.5, tableLength/heightFactor-heightFactor);
+      translate(TABLE_WIDTH/widthFactor-widthFactor, TABLE_HEIGHT/2+TABLE_THICKNESS*1.5, TABLE_LENGTH/heightFactor-heightFactor);
       fill(195, 201, 197);
       noStroke();
-      box(4, tableHeight, 4);
+      box(4, TABLE_HEIGHT, 4);
       pop();
     }
   }
-
-  // push();
-  // translate(tableWidth/2-3, tableHeight/2+tableThickness*1.5, tableLength/2-3);
-  // fill("gray");
-  // box(5, tableHeight, 5);
-  // pop();
-
   pop();
 
 }
 
 function tipsScreen() {
   input.hide();
-
+  push();
+  rectMode(CENTER);
+  noStroke();
   fill(currentButtonColor);
-  rect(0, 0, width*0.85, height*0.85, 30);
+  rect(0, 0, width * 0.85, height * 0.9, 30);
+  pop();
 
-  textSize(width*0.02);
+  textAlign(CENTER, TOP);
+  textSize(width * 0.028);
+  push();
+  textFont(boldFont);
+  if (darkModeEnabled) {
+    fill(255, 76, 76);
+  } 
+  else {
+    fill(220, 50, 50);
+  }
+  text("EXEMPLAR COACHING INTERFACE", 0, -height * 0.4);
+  pop();
+
+  textSize(width * 0.013);
   fill(foregroundColor);
-  text(`
-This is the tips screen! Click around to explore the different
- strokes, strategies, and concepts intable tennis, which you
-  can use to compare to your own game and stroke training.`, 0, -height*0.38);
+  let subtitleText = `Select a technical stroke below to review professional coaching parameters.
+Clicking a category will automatically render a pre-recorded reference model
+side-by-side right next to your coaching tips.`;
+  text(subtitleText, 0, -height * 0.32);
 
+  let bWidth = width * 0.11;
+  let bHeight = height * 0.05;
+  let rowY = height * 0.32; 
   
+  if (tipGridButtons.length === 0) {
+    tipGridButtons.push(new Button(width * 0.24, rowY, "Forehand", buttonDarkModeColor, bWidth, bHeight, 10, 2));
+    tipGridButtons.push(new Button(width * 0.37, rowY, "Backhand", buttonDarkModeColor, bWidth, bHeight, 10, 2));
+    tipGridButtons.push(new Button(width * 0.50, rowY, "Loop",     buttonDarkModeColor, bWidth, bHeight, 10, 2));
+    tipGridButtons.push(new Button(width * 0.63, rowY, "Push",     buttonDarkModeColor, bWidth, bHeight, 10, 2));
+    tipGridButtons.push(new Button(width * 0.76, rowY, "Serve",    buttonDarkModeColor, bWidth, bHeight, 10, 2));
+  }
+
+  for (let i = 0; i < tipGridButtons.length; i++) {
+    let btn = tipGridButtons[i];
+    btn.backgroundColor = backgroundColor;
+    btn.buttonTextColor = foregroundColor;
+    btn.drawButton();
+  }
+
+  drawExemplarSkeleton(-width * 0.18, height * 0.12, 0.4);
+
+  push();
+  textAlign(LEFT, TOP);
+  let textX = width * 0.04;
+  let textY = -height * 0.12;
+
+  push();
+  textFont(boldFont);
+  textSize(width * 0.02);
+  fill(foregroundColor);
+  text("STROKE PROFILE: " + currentTipStroke.toUpperCase(), textX, textY);
+  pop();
+
+  textSize(width * 0.013);
+  fill(foregroundColor);
+  
+  let dynamicTips = `Click one of the technical buttons
+to view an example of the stroke.`;
+
+  if (currentTipStroke === "Forehand") {
+    dynamicTips = `- Kinetic Momentum:
+  Rotate your hips backward during backswing.
+
+- Elbow Positioning:
+  Keep your elbow at around ~110°, preventing
+  it from going straight and make sure you brush
+  the ball.
+  
+- Racket Angle Orientation:
+  Make sure the racket's forehand is facing at a
+  diagonal towards the ground, to cancel out
+  incoming velocity.`;
+  } 
+  
+  if (currentTipStroke === "Backhand") {
+    dynamicTips = `- Keep a Consistent Stance:
+  Stand in a parallel fashion to the short edge
+  of the table to allow for consistent hitting.
+
+- Extending Your Elbow:
+  Prioritize extending your elbow and arm, rather
+  than rotating your shoulder too much.
+
+- Acceleration Phase:
+  Snap the wrist right right before and during
+  contact creating maximum spin and speed.`;
+  } 
+  
+  if (currentTipStroke === "Loop") {
+    dynamicTips = `- Power Generation:  
+  Drop the waist and hips to below the table
+  surface, generating a powerful backswing.
+
+- High Spin and Speed:
+  Perform an aggresive upward brushing motion to
+  produce a high spin and speed loop.
+
+- Angle of Attack:
+  Close the racket orientation quickly to
+  counteract the high velocity tracjectories.`;
+  } 
+  
+  if (currentTipStroke === "Push") {
+    dynamicTips = `- Counteract Backspin:
+  Face the backhand side of the racket to face up.
+
+- Contact Point:
+  Slice smoothly underneath the ball when it is
+  in its descent phase after the bounce.
+
+- Controlled Follow-Through:
+  Push forward with a controlled elbow to absorb
+  the incoming spin and use it to your advantage.`;
+  } 
+  
+  if (currentTipStroke === "Serve") {
+    dynamicTips = `- Rules Restriction:
+  Toss the ball vertically at least 16cm from an
+  open palm.
+
+- Pendulum Motion:
+  Keep your shoulder relaxed by using more wrist
+  and elbow movement, creating a snapping motion.
+
+- Coaching Tip:
+  Practice specific contact points on the racket
+  to generate unique spins with the same motion.`;
+  }
+
+  text(dynamicTips, textX, textY + height * 0.06);
+  pop();
+}
+
+function drawExemplarSkeleton(xOffset, yOffset, skeletonScale) {
+  if (exemplarLandmarks.length === 0) {
+    push();
+    translate(xOffset, yOffset);
+    stroke(foregroundColor);
+    noFill();
+    rect(0, 0, width * 0.32, height * 0.45, 15);
+    textAlign(CENTER, CENTER);
+    textSize(width * 0.015);
+    fill(foregroundColor);
+    text(`Select a stroke to load
+3D Animated Exemplar`, 0, 0);
+    pop();
+    return;
+  }
+
+  if (autoPlay && !playbackPaused && millis() > lastExemplarFrame + frameInterval) {
+    lastExemplarFrame = millis();
+    exemplarFrame++;
+    if (exemplarFrame >= exemplarLandmarks.length) {
+      exemplarFrame = 0;
+    }
+  }
+
+  push();
+  translate(xOffset, yOffset);
+  
+  stroke(foregroundColor);
+  strokeWeight(1);
+  noFill();
+  rect(0, 0, width * 0.32, height * 0.45, 15);
+
+  scale(skeletonScale);
+  
+  for (let nodeIndex = 0; nodeIndex < exemplarLandmarks[exemplarFrame].length; nodeIndex++) {
+    let nodeX = (exemplarLandmarks[exemplarFrame][nodeIndex][0] - 0.4) * width;
+    let nodeY = (exemplarLandmarks[exemplarFrame][nodeIndex][1] - 0.5) * height;
+    let nodeZ = exemplarLandmarks[exemplarFrame][nodeIndex][2] * width / 3;
+
+    for (let j = 0; j < connections[nodeIndex].length; j++) {
+      let otherIndex = connections[nodeIndex][j];
+      
+      if (otherIndex < exemplarLandmarks[exemplarFrame].length) {
+        let otherX = (exemplarLandmarks[exemplarFrame][otherIndex][0] - 0.4) * width;
+        let otherY = (exemplarLandmarks[exemplarFrame][otherIndex][1] - 0.5) * height;
+        let otherZ = exemplarLandmarks[exemplarFrame][otherIndex][2] * width / 3;
+        
+        strokeWeight(10 * THE_SCALE);
+        stroke(foregroundColor);
+        line(nodeX, nodeY, -nodeZ, otherX, otherY, -otherZ);
+      }
+    }
+  }
+  pop();
+}
+
+function drawRotatePrompt() {
+  input.hide();
+  fill(foregroundColor);
+  textAlign(CENTER, CENTER);
+  textSize(width * 0.07);
+  text(`Please rotate your
+device to landscape`, 0, 0);
 }
