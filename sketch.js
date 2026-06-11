@@ -100,6 +100,7 @@ let connections = [
   [28, 30] // 32: Right Foot Index
 ];
 
+// Displays the landmarks and makes connections to all other nodes nearby
 class LandmarkNode {
   constructor(x,y,z, landmarkIndex) {
     this.x = x * width;
@@ -115,6 +116,7 @@ class LandmarkNode {
   }
 }
 
+// Creates buttons
 class Button {
   constructor(x, y, buttonText, backgroundColor, buttonWidth, buttonHeight, borderRadius, buttonTextSize = 6) {
     this.x = x-width/2;
@@ -129,6 +131,7 @@ class Button {
     this.buttonTextSize = buttonTextSize;
   }
 
+  // Draw button
   drawButton() {
     noStroke();
     rectMode(CENTER);
@@ -153,6 +156,7 @@ class Button {
     pop();
   }
   
+
   isSelected() {
     let w = this.buttonWidth/2;
     let h = this.buttonHeight/2;
@@ -170,16 +174,18 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
+
   darkModeColor = color(16,18,17);
   lightModeColor = color(255,255,255);
   buttonDarkModeColor = color(35, 37, 36);
   buttonLightModeColor = color(220);
 
-  fill("white");
-  input = createFileInput(handleFile);
-  input.position(width*0.44, height*0.55); 
-  input.style('z-index', '10');
-
+  // CSV IMPORT FILE BUTTON
+  csvImport = createFileInput(loadCSVFile);
+  csvImport.position(width*0.44, height*0.55); 
+  csvImport.style('z-index', '10');
+  
+  // Sets the frame rate
   frameInterval = 1000/FRAME_RATE;
   textFont(regularFont);
 
@@ -187,7 +193,6 @@ function setup() {
   menuButtons.push(new Button(width*0.4, height*0.6, "3D Viewer", buttonDarkModeColor, width/6, width/9, 20));
   menuButtons.push(new Button(width*0.6, height*0.6, "Dataset Viewer", buttonDarkModeColor, width/6, width/9, 20));
   darkModeToggleButton = new Button(0.97*width, 0.06*height, "Dark/Light", color(255,255,255), width/25, width/25, 15);
-
   tipsButton = new Button(0.97*width, 0.94*height, "Tips", color(255,255,255), width/25, width/25, 15, 4);
 }
 
@@ -223,7 +228,7 @@ function loadExemplarData(fileName, strokeName) {
   });
 }
 
-function handleFile(file) {
+function loadCSVFile(file) {
   // While looking at importing CSV files online, I found that it would be easier to parse the files rather than read them like tables. I got a whole bunch of errors when trying to import, so I found that parsing works way faster and is overall better
   if (file.type === 'comma-separated-values' || file.name.endsWith('.csv')) {
     let rawText = file.data;
@@ -428,7 +433,7 @@ function drawPoint(index) {
 }
 
 function mainMenu() {
-  input.hide();
+  csvImport.hide();
   fill(foregroundColor);
   textSize(width*0.03);
   text(`Next, select if you want to view the coordinates
@@ -557,7 +562,7 @@ function updateTheme() {
 }
 
 function importCSV() {
-  input.show();
+  csvImport.show();
   textSize(height*0.04);
   fill(buttonLightModeColor);
   rectMode(CENTER);
@@ -774,7 +779,7 @@ function drawPhysicalTable() {
 }
 
 function tipsScreen() {
-  input.hide();
+  csvImport.hide();
   push();
   rectMode(CENTER);
   noStroke();
@@ -972,7 +977,7 @@ function drawExemplarSkeleton(xOffset, yOffset, skeletonScale) {
 }
 
 function drawRotatePrompt() {
-  input.hide();
+  csvImport.hide();
   fill(foregroundColor);
   textAlign(CENTER, CENTER);
   textSize(width * 0.07);
