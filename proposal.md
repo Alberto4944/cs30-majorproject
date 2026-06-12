@@ -8,8 +8,8 @@ This project will be a javascript version of my Research Methods 20 class. My re
 - FULL DATA PAGE
   - Large central viewer that displays all points with customizable colors (almost done, just customize colors)
   - a scrollable coordinate table that syncs with the player (still have to make)
-- Mobile responsiveness (not)
-  - landscape: video on left, stats on right (not done)
+- Mobile responsiveness
+  - landscape mode
   - Removed portrait mode since it is not needed since landscape makes viewing much easier and makes more sense for a tripod
 - Dark / light theme, can be toggled (done)
 

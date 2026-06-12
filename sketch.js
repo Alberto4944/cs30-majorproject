@@ -1,9 +1,10 @@
 // Computer-Vision Usage in Table Tennis Training Research Project - Javscript Side
 // This side of the project was to create a frontend interface for my python programs
-// PYTHON GITHUB REPOSITORY: https://github.com/Alberto4944/Research-Methods-20 
+// PYTHON GITHUB REPOSITORY: https://github.com/Alberto4944/Research-Methods-20 (STILL WIP, WILL WORK OVER SUMMER)
 // Albert Wu
 // 2026/06/12
 
+// DECLARE VARIABLES
 let landmarks = [];
 let frame = 0;
 let lastFrame = 0;
@@ -11,8 +12,8 @@ let frameInterval;
 let regularFont;
 let boldFont;
 
+// Frame rate
 const FRAME_RATE = 60;
-let THE_SCALE = 0.25;
 
 let firstNoseFrame = 0;
 let state = "IMPORT CSV";
@@ -46,6 +47,7 @@ let rowHeight = 28;
 let visibleCols = [];
 let chartColors = ["#FF6B6B", "#FF8E53", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"];
 
+// TIPS SCREEN
 let tipsButton;
 let tipsEnabled = false;
 
@@ -56,11 +58,19 @@ let lastExemplarFrame = 0;
 let currentTipStroke = "None"; // Tracks which stroke details to display
 let tipGridButtons = [];
 
+// TABLE DIMENSIONS
 const TABLE_LENGTH = 274;
 const TABLE_WIDTH = 152.5;
 const TABLE_THICKNESS = 10;
 const NET_HEIGHT = 15.25;
 const TABLE_HEIGHT = 76;
+
+// CAMERA BUTTON
+let cameraButton;
+let cameraEnabled = false;
+
+// BACK BUTTON
+let backButton;
 
 let connections = [
   [2, 5], // 0: Nose
@@ -108,7 +118,7 @@ class LandmarkNode {
   }
 
   drawConnection(otherNode) {
-    strokeWeight(10*THE_SCALE);
+    strokeWeight(2.5);
     stroke(foregroundColor);
     line(this.x, this.y, -this.z, otherNode.x, otherNode.y, -otherNode.z);
   }
@@ -196,6 +206,9 @@ function setup() {
   menuButtons.push(new Button(width*0.6, height*0.6, "Dataset Viewer", buttonDarkModeColor, width/6, width/9, 20));
   darkModeToggleButton = new Button(0.97*width, 0.06*height, "Dark/Light", color(255,255,255), width/25, width/25, 15);
   tipsButton = new Button(0.97*width, 0.94*height, "Tips", color(255,255,255), width/25, width/25, 15, 4);
+  backButton = new Button(0.03*width, 0.94*height, "Back", color(255,255,255), width/25, width/25, 15, 4);
+  cameraButton = new Button(0.97*width, 0.18*height, `Rotate
+Camera`, color(255,255,255), width/25, width/25, 15, 5);
 }
 
 // Loads the exemplar data
@@ -282,6 +295,7 @@ function loadCSVFile(file) {
   }
 }
 
+// Press space to pause
 function keyPressed() {
   if (key === " ") {
     playbackPaused = !playbackPaused;
@@ -309,26 +323,36 @@ function draw() {
   }
   else if (state === "3D VIEWER") {
     // orbitControl();
+    cameraButton.drawButton();
+    backButton.drawButton();
+
+    // SHOWS THE FRAME COUNT
     push();
     fill(foregroundColor);
     textSize(width/50);
     text(`Frame: ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, -width/2+width/6, -height/2+50);
     pop();
     push();
-    let angle = frameCount * 0.01;
-    rotateY(angle);
+    
+    // MAKES THE "CAMERA" SIT HIGHER AND LOOK DOWN
+    rotateX(-0.1); 
+
+    // AUTO CAMERA 
+    if (cameraEnabled) {
+      let angle = frameCount * 0.005;
+      rotateY(angle);
+    }
+    else {
+      rotateY(Math.PI/3.5);
+    }
+  
     drawPhysicalTable();
     threeDViewer();
     pop();
   }
-  else if (state === "DATASET MENU") {
-    datasetMenu();
-  }
   else if (state === "DATASET VIEWER") {
     datasetViewer();
-  }
-  else if (state === "test") {
-    drawPhysicalTable();
+    backButton.drawButton();
   }
   else if (state === "TIPS") {
     tipsScreen();
@@ -336,8 +360,9 @@ function draw() {
 }
 
 function threeDViewer() {
-  scale(THE_SCALE);
+  scale(0.25);
   
+  // DRAWS THE BASE
   push();
   rotateX(HALF_PI);
   translate(0,0,-680);
@@ -358,6 +383,7 @@ function threeDViewer() {
 }
 
 function drawConnections(frame) {
+  // DRAWS THE SKELETON
   landmarkNodes = [];
   for (let nodeIndex = 0; nodeIndex < landmarks[frame].length; nodeIndex++) {
     landmarkNodes.push(new LandmarkNode(landmarks[frame][nodeIndex][0]-0.5, landmarks[frame][nodeIndex][1]-0.2, landmarks[frame][nodeIndex][2], nodeIndex));
@@ -370,24 +396,17 @@ function drawConnections(frame) {
 }
 
 function mouseWheel(event) {
-  if (state === "DATASET VIEWER" && datasetTab === "Table") {
+  if (state === "DATASET VIEWER") {
+    // ALLOWS FOR THE SCROLLING OF THE DATASET TABLE
     tableScrollY += event.delta * 0.5;
     let totalH = datasetRows.length * rowHeight;
     let viewH = height * 0.8;
     tableScrollY = constrain(tableScrollY, 0, max(0, totalH - viewH));
-    return; // stop here so it doesn't also zoom
   }
-  let direction = Math.sign(event.delta);
-  if (direction > 0) {
-    THE_SCALE+=0.01;
-  } 
-  else if (direction < 0) {
-    THE_SCALE-=0.01;
-  }
-  THE_SCALE = constrain(THE_SCALE, 0.1, 5.0);
 }
 
 function drawTorso() {
+  // Draws the torso
   let leftShoulder = landmarks[frame][11];
   let rightShoulder = landmarks[frame][12];
   let leftHip = landmarks[frame][23];
@@ -405,6 +424,7 @@ function drawTorso() {
   pop();
 }
 
+// Main Menu
 function mainMenu() {
   csvImport.hide();
   fill(foregroundColor);
@@ -416,6 +436,7 @@ in 3D or view it in a regular table/chart form.`, 0, height*-0.15);
   }
 }
 
+// HANDLES ALL MOUSE CLICKS
 function mouseClicked() {
   if (darkModeToggleButton.isSelected()) {
     darkModeEnabled = !darkModeEnabled;
@@ -427,17 +448,8 @@ function mouseClicked() {
           state = "3D VIEWER";
         }
         if (btn.buttonText === "Dataset Viewer") {
-          state = "DATASET MENU";
+          state = "DATASET VIEWER";
         }
-      }
-    }
-  }
-  if (state === "DATASET MENU") {
-    for (let btn of datasetTabButtons) {
-      if (btn.isSelected()) {
-        datasetTab = btn.buttonText;
-        state = "DATASET VIEWER";
-        tableScrollY = 0;
       }
     }
   }
@@ -481,8 +493,15 @@ function mouseClicked() {
       }
     }
   }
+  if (cameraButton.isSelected()) {
+    cameraEnabled = !cameraEnabled;
+  }
+  if (backButton.isSelected()) {
+    state = "MAIN MENU";
+  }
 }
 
+// DARK AND LIGHT MODE
 function updateTheme() {
   if (darkModeEnabled) {
     backgroundColor = darkModeColor;
@@ -491,6 +510,8 @@ function updateTheme() {
     darkModeToggleButton.backgroundColor = color(255);
     darkModeToggleButton.buttonTextColor = color(0);
     darkModeToggleButton.buttonText = "Light Mode";
+    cameraButton.buttonTextColor = color(255);
+    backButton.buttonTextColor = color(255);
   }
   else {
     backgroundColor = lightModeColor;
@@ -499,7 +520,17 @@ function updateTheme() {
     darkModeToggleButton.backgroundColor = color(0);
     darkModeToggleButton.buttonTextColor = color(255);
     darkModeToggleButton.buttonText = "Dark Mode";
+    cameraButton.buttonTextColor = color(0);
+    backButton.buttonTextColor = color(0);
   }
+
+  cameraButton.backgroundColor = currentButtonColor;
+  cameraButton.selectedColor = color(red(currentButtonColor)-10, green(currentButtonColor)-10, blue(currentButtonColor)-10);
+
+  backButton.backgroundColor = currentButtonColor;
+  backButton.selectedColor = color(red(currentButtonColor)-10, green(currentButtonColor)-10, blue(currentButtonColor)-10);
+  
+
   darkModeToggleButton.selectedColor = color(red(darkModeToggleButton.backgroundColor)-10, green(darkModeToggleButton.backgroundColor)-10, blue(darkModeToggleButton.backgroundColor)-10);
 
   for (let button of menuButtons) {
@@ -534,47 +565,26 @@ function updateTheme() {
   }
 }
 
+// IMPORT CSV SCREEN
 function importCSV() {
   csvImport.show();
-  textSize(height*0.04);
+  textSize(height*0.035);
   fill(buttonLightModeColor);
   rectMode(CENTER);
   rect(0, height*0.06, width*0.14, height*0.05, 30);
   fill(foregroundColor);
   textAlign(CENTER);
-  text(`Welcome to the table tennis AI-assisted coaching
-web-viewer made by Albert Wu for a CS30 SDS!
-If not done already, play around with the python program,
-where you will be able to export a pose_landmarks.csv
-file, so you can import it here. Then, you can select
-either to visualize in 3D or view the full dataset in a 
-user-friendly way. Begin by importing the CSV file.`, 0, -height*0.3);
+  text(`Welcome to the table tennis AI-assisted coaching web-viewer made
+by Albert Wu for a CS30 SDS! If not done already, play around with the
+python program, where you will be able to export a pose_landmarks.csv
+file. A CSV (Comma-Separated Values) file contains the raw 3D spatial
+coordinates (X, Y, Z coordinates) for all 33 human skeletal joints captured
+frame-by-frame by the external MediaPipe computer vision program.Then, you
+can select either to visualize in 3D or view the full dataset in a 
+user-friendly way. Begin by importing the CSV file (default in github folder).`, 0, -height*0.3);
 }
 
-function datasetMenu() {
-  fill(foregroundColor);
-  textSize(width * 0.025);
-  textAlign(CENTER);
-  text("Dataset Viewer", 0, -height * 0.3);
-    
-  // Frame count
-  textSize(width * 0.013);
-  text(`${datasetRows.length} frames loaded and ${datasetHeaders.length} columns`, 0, -height * 0.22);
-
-  // Create buttons only once
-  if (datasetTabButtons.length === 0) {
-    datasetTabButtons.push(new Button(width * 0.4, height * 0.55, "Table", currentButtonColor, width / 7, width / 12, 16));
-    datasetTabButtons.push(new Button(width * 0.6, height * 0.55, "Chart", currentButtonColor, width / 7, width / 12, 16));
-  }
-
-  // Update colors to match current theme and draw
-  for (let btn of datasetTabButtons) {
-    btn.backgroundColor = currentButtonColor;
-    btn.buttonTextColor = foregroundColor;
-    btn.drawButton();
-  }
-}
-
+// DATASET VIEWER
 function datasetViewer() {
   // Update button colors to match theme
   for (let btn of datasetTabButtons) {
@@ -604,12 +614,7 @@ function datasetViewer() {
   pop();
 
   // Show the right view
-  if (datasetTab === "Table") {
-    drawDataTable();
-  } 
-  else {
-    drawDataChart();
-  }
+  drawDataTable
 }
 
 function drawDataTable() {
@@ -621,6 +626,7 @@ function drawDataTable() {
     return;
   }
 
+  // Math to calculate where the headers go
   let colWidth = constrain(width / visibleCols.length, 60, 160);
   let startX = -width / 2 + 10;
   let headerHeight = rowHeight + 6;
@@ -715,6 +721,7 @@ function drawDataTable() {
 }
 
 function drawPhysicalTable() {
+  // DRAWS THE TABLE SURFACE
   push();
   fill(0, 117, 255);
   translate(0, 87, 170);
@@ -733,10 +740,11 @@ function drawPhysicalTable() {
     }
   }
 
-
+  // DRAWS THE NET
   translate(0, -TABLE_THICKNESS/2, 0);
   box(TABLE_WIDTH, NET_HEIGHT, 2);
   
+  // DRAWS THE LEGS
   for (let widthFactor of [-2, 2]) {
     for (let heightFactor of [-2, 2]) {
       push();
@@ -751,6 +759,7 @@ function drawPhysicalTable() {
 
 }
 
+// THE TIPS SCREEN
 function tipsScreen() {
   csvImport.hide();
   push();
@@ -799,6 +808,7 @@ side-by-side right next to your coaching tips.`;
     btn.drawButton();
   }
 
+  // DRAWS THE EXAMPLE SKELETON (NOT ALL DONE)
   drawExemplarSkeleton(-width * 0.18, height * 0.12, 0.4);
 
   push();
@@ -904,7 +914,8 @@ function drawExemplarSkeleton(xOffset, yOffset, skeletonScale) {
     textSize(width * 0.015);
     fill(foregroundColor);
     text(`Select a stroke to load
-3D Animated Exemplar`, 0, 0);
+3D Animated Exemplar. May not be
+avaliable yet though.`, 0, 0);
     pop();
     return;
   }
@@ -927,6 +938,7 @@ function drawExemplarSkeleton(xOffset, yOffset, skeletonScale) {
 
   scale(skeletonScale);
   
+  // Draws the skeleton
   for (let nodeIndex = 0; nodeIndex < exemplarLandmarks[exemplarFrame].length; nodeIndex++) {
     let nodeX = (exemplarLandmarks[exemplarFrame][nodeIndex][0] - 0.4) * width;
     let nodeY = (exemplarLandmarks[exemplarFrame][nodeIndex][1] - 0.5) * height;
@@ -940,7 +952,7 @@ function drawExemplarSkeleton(xOffset, yOffset, skeletonScale) {
         let otherY = (exemplarLandmarks[exemplarFrame][otherIndex][1] - 0.5) * height;
         let otherZ = exemplarLandmarks[exemplarFrame][otherIndex][2] * width / 3;
         
-        strokeWeight(10 * THE_SCALE);
+        strokeWeight(2.5);
         stroke(foregroundColor);
         line(nodeX, nodeY, -nodeZ, otherX, otherY, -otherZ);
       }
@@ -949,6 +961,7 @@ function drawExemplarSkeleton(xOffset, yOffset, skeletonScale) {
   pop();
 }
 
+// PORTRAIT DETECTION ON MOBILE
 function drawRotatePrompt() {
   csvImport.hide();
   fill(foregroundColor);

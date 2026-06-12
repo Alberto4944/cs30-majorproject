@@ -1,0 +1,13 @@
+# What advice would you give to yourself if you were to start a project like this again?
+I Would say it is important to create a clear and specific outline, making sure you know what to do. I felt like my outline for both the CS30 and RMD20 was a bit unclear at the beginning, and I felt like I had to create my outline as I programmed. As well, I would tell myself to first experiment with simpler 3D projects in p5js, then work larger, since it took a while to get used to WEBGL. 
+
+# Did you complete everything in your “needs to have” list?
+Yes I did, the only thing I didn't fully flesh out was the dataset viewer, but I felt like it would't be used as much though. I did get to add a tips viewer though (wasn't on wants to have, but I found it to be cool). I am really proud of the dark/light switcher since I have always wanted to make one and it worked really well.
+
+# What was the hardest part of the project?
+I think the hardest thing was connecting the two programs together (python, javascript) with the CSV file. It was quite challenging to export the data points into CSV, and then into p5js. I had to learn about parsing, and how to use that instead of just the regular importing options in p5js. In the python side, the hardest part was the ball tracking (not enough time to put into p5js, I hadn't figured out the Z coordinate in python). I had to learn YOLO and how to train a model on Google Colab, since my computer was not strong enough.
+
+# Were there any problems you could not solve?
+Really the main problem I couldn't solve was the dataset viewer, I felt it could have been fleshed out more. I had issues aligning it to the website (still isn't perfect). I also just ran out of time to record the final 4 tips, since I didn't have time to record at my club since the last couple weeks have been tournament prep and no time for recording sadly. Also on the python side, I still haven't fully completed the classification of strokes, but I want to do that this summer/
+
+Overall, I think the project went quite well! On both sides (python and P5JS), my plan went pretty well and I got really good feedback at our Research Methods 20 share fair. People seemed to really enjoy the P5js viewer! Over the next few months, I plan to continue the project (mainly the python side), creating a program that anyone can install and use. Additonally, I am part of this non-profit group online called HackClub, where I will work on this project to get prizes and share this project with the public community! Thanks for an amazing year Mr. Schellenberg.
