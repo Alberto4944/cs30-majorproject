@@ -614,7 +614,7 @@ function datasetViewer() {
   pop();
 
   // Show the right view
-  drawDataTable
+  drawDataTable();
 }
 
 function drawDataTable() {
