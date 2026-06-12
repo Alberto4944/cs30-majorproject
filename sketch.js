@@ -1,4 +1,9 @@
-// Click and drag the mouse to view the scene from different angles.
+// Computer-Vision Usage in Table Tennis Training Research Project - Javscript Side
+// This side of the project was to create a frontend interface for my python programs
+// PYTHON GITHUB REPOSITORY: https://github.com/Alberto4944/Research-Methods-20 
+// Albert Wu
+// 2026/06/12
+
 let landmarks = [];
 let frame = 0;
 let lastFrame = 0;
@@ -17,8 +22,6 @@ let landmarkNodes = [];
 
 // MAIN MENU
 let menuButtons = [];
-let threeDMenuButton;
-let datasetViewerMenuButton;
 
 // DARK MODE
 let darkModeToggleButton;
@@ -41,7 +44,6 @@ let datasetTabButtons = [];
 let tableScrollY = 0;
 let rowHeight = 28;
 let visibleCols = [];
-let chartLandmarks = ["lm0_x", "lm0_y", "lm15_x", "lm15_y", "lm13_x", "lm13_y"];
 let chartColors = ["#FF6B6B", "#FF8E53", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"];
 
 let tipsButton;
@@ -53,10 +55,6 @@ let exemplarFrame = 0;
 let lastExemplarFrame = 0;
 let currentTipStroke = "None"; // Tracks which stroke details to display
 let tipGridButtons = [];
-
-let noseX;
-let noseY;
-let noseZ;
 
 const TABLE_LENGTH = 274;
 const TABLE_WIDTH = 152.5;
@@ -146,6 +144,7 @@ class Button {
     this.drawText();
   }
 
+  // Draws the text in the button box
   drawText() {
     push();
     fill(this.buttonTextColor);
@@ -156,7 +155,7 @@ class Button {
     pop();
   }
   
-
+  // Returns if the mouse is inside the box / button
   isSelected() {
     let w = this.buttonWidth/2;
     let h = this.buttonHeight/2;
@@ -175,6 +174,7 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
 
+  // Sets the dark and light mode colors
   darkModeColor = color(16,18,17);
   lightModeColor = color(255,255,255);
   buttonDarkModeColor = color(35, 37, 36);
@@ -187,6 +187,8 @@ function setup() {
   
   // Sets the frame rate
   frameInterval = 1000/FRAME_RATE;
+
+  // Set website wide font to my font I chose
   textFont(regularFont);
 
   // // ALL BUTTONS HAVE THEIR ORIGIN AT TOP-LEFT CORNER (0,0)
@@ -196,7 +198,9 @@ function setup() {
   tipsButton = new Button(0.97*width, 0.94*height, "Tips", color(255,255,255), width/25, width/25, 15, 4);
 }
 
+// Loads the exemplar data
 function loadExemplarData(fileName, strokeName) {
+  // Did this after the loadcsv function, but it follows basically the exact same format
   exemplarLandmarks = [];
   exemplarFrame = 0;
   currentTipStroke = strokeName;
@@ -206,22 +210,18 @@ function loadExemplarData(fileName, strokeName) {
       return;
     }
     
-    for (let i = 0; i < rows.length; i++) {
-      if (rows[i].trim() === "") {
-        continue;
-      }
-      
-      let cols = rows[i].split(',');
+    // For each row (frame), parse the values and add it to the exemplar landmarks array
+    for (let row = 0; row < rows.length; row++) {
       let current_landmarks = [];
-      
-      for (let col = 0; col < cols.length; col += 3) {
-        if (cols[col]) {
-          current_landmarks.push([
-            parseFloat(cols[col]),
-            parseFloat(cols[col+1]),
-            parseFloat(cols[col+2])
-          ]);
-        }
+      let cols = rows[row].split(',');
+
+      // Loops through each value and works in groups of 3
+      for (let col = 0; col < cols.length; col+=3) {
+        current_landmarks.push([
+          parseFloat(cols[col]), 
+          parseFloat(cols[col+1]), 
+          parseFloat(cols[col+2])
+        ]);
       }
       exemplarLandmarks.push(current_landmarks);
     }
@@ -253,11 +253,7 @@ function loadCSVFile(file) {
         ]);
       }
       landmarks.push(current_landmarks);
-    }
-    // This is to put the origin to be the nose, so it looks better for the user
-    firstNoseFrame = findFirstFrameWithNose();
-    firstNoseFrame = findFirstFrameWithNose();
-    state = "MAIN MENU";  
+    }    
 
     // Generate column names since pose_landmarks.csv has no header
     datasetHeaders = [];
@@ -278,6 +274,7 @@ function loadCSVFile(file) {
 
     // Default visible columns — nose, right wrist, right elbow. WOULD WANT TO MAKE USER CHANGEABLE
     visibleCols = [0, 1, 2, 45, 46, 47, 39, 40, 41];
+    state = "MAIN MENU";  
 
   } 
   else {
@@ -286,11 +283,7 @@ function loadCSVFile(file) {
 }
 
 function keyPressed() {
-  if (key === "a") {
-    autoPlay = !autoPlay;
-    frame = 0;
-  }
-  else if (key === " ") {
+  if (key === " ") {
     playbackPaused = !playbackPaused;
   }
 }
@@ -299,6 +292,7 @@ function draw() {
   updateTheme();
   background(backgroundColor);
 
+  // MOBILE CHECK, MAKES SURE USER TURNS PHONE TO LANDSCAPE
   if (width < height) {
     drawRotatePrompt();
     return;
@@ -306,6 +300,7 @@ function draw() {
 
   darkModeToggleButton.drawButton();
   tipsButton.drawButton();
+  
   if (state === "IMPORT CSV") {
     importCSV();
   }
@@ -313,11 +308,18 @@ function draw() {
     mainMenu();
   }
   else if (state === "3D VIEWER") {
-    orbitControl();
-    // let angle = frameCount * 0.002;
-    // rotateY(angle);
+    // orbitControl();
+    push();
+    fill(foregroundColor);
+    textSize(width/50);
+    text(`Frame: ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, -width/2+width/6, -height/2+50);
+    pop();
+    push();
+    let angle = frameCount * 0.01;
+    rotateY(angle);
     drawPhysicalTable();
     threeDViewer();
+    pop();
   }
   else if (state === "DATASET MENU") {
     datasetMenu();
@@ -335,10 +337,6 @@ function draw() {
 
 function threeDViewer() {
   scale(THE_SCALE);
-  if (frame >= landmarks.length-1) {
-    frame = 0;
-  }
-
   
   push();
   rotateX(HALF_PI);
@@ -347,16 +345,14 @@ function threeDViewer() {
   plane(1500); 
   pop();
 
-  
   if (autoPlay && !playbackPaused & millis() > lastFrame + frameInterval) {
     lastFrame = millis();
     frame++;
+    
+    if (frame >= landmarks.length-1) {
+      frame = 0;
+    }
   }
-
-  push();
-  fill("black");
-  text(`Frame: ${frame+1}/${landmarks.length} or ${Math.round((frame+1) / FRAME_RATE * 10) / 10}/${Math.round(landmarks.length / FRAME_RATE * 10) / 10}s`, 400, 150);
-  pop();
 
   drawConnections(frame);
 }
@@ -406,29 +402,6 @@ function drawTorso() {
   vertex(rightHip[0]*width, rightHip[1]*height, -rightHip[2]*height/1.5);
   vertex(leftHip[0]*width, leftHip[1]*height, -leftHip[2]*height/1.5);
   endShape(CLOSE);
-  pop();
-}
-
-function findFirstFrameWithNose() {
-  for (let frame = 0; frame < landmarks.length; frame++) {
-    if (!isNaN(landmarks[frame][0][0])) {
-      return frame;
-    }
-  }
-}
-
-function makeSlider() {
-  slider = createSlider(0, landmarks.length-1, 0);
-  slider.position(width/2-200,100);
-  slider.size(400);
-  slider.style('z-index', '10');
-}
-
-function drawPoint(index) {
-  push();
-  stroke("red");
-  strokeWeight(10);
-  point(landmarks[frame][index][0]*width, landmarks[frame][index][1]*height, -landmarks[frame][index][2]*height/1.5);
   pop();
 }
 
